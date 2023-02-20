@@ -1,0 +1,4 @@
+{
+    "appService.preDeployTask": "publish-release",
+    "appService.deploySubpath": "ZoneDetection/bin/Release/net6.0/publish"
+}

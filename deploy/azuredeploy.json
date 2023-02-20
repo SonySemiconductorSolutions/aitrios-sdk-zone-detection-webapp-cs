@@ -1,0 +1,443 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"UniqueId": {
+			"type": "string",
+			"defaultValue": "[take(uniqueString(resourceGroup().id), 5)]",
+			"minLength": 3,
+			"maxLength": 5,
+			"metadata": {
+				"description": "String to generate unique names"
+			}
+		},
+		"location": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().location]"
+		},
+		"web_app_name": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 40,
+			"defaultValue": "app-soltemplate"
+		},
+		"function_app_name": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 40,
+			"defaultValue": "func-soltemplate"
+		},
+		"signalr_name": {
+			"type": "string",
+			"minLength": 3,
+			"maxLength": 63,
+			"defaultValue": "singnalr-soltemplate"
+		},
+		"eventhub_name": {
+			"type": "string",
+			"minLength": 3,
+			"maxLength": 63,
+			"defaultValue": "eventhub-soltemplate"
+		},
+		"storage_account_name" : {
+			"type": "string",
+			"defaultValue": "strsoltemplate"
+		},
+		"storage_account_type" : {
+			"type": "string",
+			"defaultValue": "Standard_LRS"
+		},
+		"blob_storage_name" : {
+			"type": "string",
+			"defaultValue": "blobsoltemplate"
+		},
+		"blob_storage_type" : {
+			"type": "string",
+			"defaultValue": "Standard_LRS"
+		},
+		"blob_container_name": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Name of your Blob Container"
+			}
+		},
+		"aitrios_url": {
+			"type": "string",
+			"metadata": {
+				"description": "Base URL for AITRIOS API."
+			}
+		},
+		"token_url": {
+			"type": "string",
+			"metadata": {
+				"description": "Token URL for AITRIOS API."
+			}
+		},
+		"aitrios_client_id": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Client id for AITRIOS API."
+			}
+		},
+		"aitrios_client_secret": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Client secret for AITRIOS API."
+			}
+		},
+		"aad_tenant_id": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Optionally provide Tenant ID for Azure Active Directory (AAD) authentication."
+			}
+		},
+		"aad_client_id": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Optionally provide Client ID for Azure Active Directory (AAD) authentication."
+			}
+		},
+		"git_webapp_repo": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Git repository URL for WebApp"
+			}
+		},
+		"git_webapp_branch": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Branch name for WebApp"
+			}	
+		},
+		"git_functionsapp_repo": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Git repository URL for Functions App"
+			}	
+		},
+		"git_functionsapp_branch": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"description": "Branch name for Functions App"
+			}
+		}
+	},
+	"variables": {
+		"apps": {
+			"apiVersion": "2022-03-01",
+			"skuName": "S1",
+			"tier": "Standard",
+			"size": "S1",
+			"family": "S",
+			"hostingPlan": "[format('{0}-AppHost-{1}', parameters('web_app_name'),parameters('UniqueID'))]",
+			"functionsName": "[format('{0}-{1}', parameters('function_app_name'),parameters('UniqueID'))]",
+			"webappName": "[parameters('web_app_name')]"
+		},
+		"signalr": {
+			"apiVersion": "2022-02-01",
+			"sku": "Standard_S1",
+			"skuTier": "Standard",
+			"name": "[format('{0}-{1}', parameters('signalr_name'),parameters('UniqueID'))]"
+		},
+		"eventhub": {
+			"apiVersion": "2022-01-01-preview",
+			"sku": "Standard",
+			"tier": "Standard",
+			"capacity": 1,
+			"name": "[format('{0}-{1}', parameters('eventhub_name'),parameters('UniqueID'))]"
+		},
+		"storageAcct": {
+			"apiVersion": "2021-09-01",
+			"sku": "[parameters('storage_account_type')]",
+			"tier": "Standard",
+			"name": "[toLower(format('{0}{1}', parameters('storage_account_name'),parameters('UniqueID')))]"
+		},
+		"blobStorage": {
+			"apiVersion": "2022-05-01",
+			"sku": "[parameters('blob_storage_type')]",
+			"tier": "Standard",
+			"name": "[toLower(format('{0}{1}', parameters('blob_storage_name'),parameters('UniqueID')))]"
+		},
+		"githubrepo": {
+			"webAppRepoUrl": "[parameters('git_webapp_repo')]",
+			"webAppBranch": "[parameters('git_webapp_branch')]",
+			"functionsRepoUrl": "[parameters('git_functionsapp_repo')]",
+			"functionsBranch": "[parameters('git_functionsapp_branch')]"
+		}
+	},
+	"resources": [
+		{
+			"type": "Microsoft.Storage/storageAccounts",
+			"apiVersion": "[variables('storageAcct').apiVersion]",
+			"name": "[variables('storageAcct').name]",
+			"location": "[parameters('location')]",
+			"tags": {},
+			"sku": {
+				"name": "[variables('storageAcct').sku]"
+			},
+			"kind": "StorageV2"
+		},
+		{
+			"type": "Microsoft.Storage/storageAccounts",
+			"apiVersion": "[variables('blobStorage').apiVersion]",
+			"name": "[variables('blobStorage').name]",
+			"location": "[parameters('location')]",
+			"tags": {},
+			"sku": {
+				"name": "[variables('blobStorage').sku]",
+				"tier": "[variables('blobStorage').tier]"
+			},
+			"kind": "StorageV2"
+		},
+		{
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2022-05-01",
+            "name": "[concat(variables('blobStorage').name, '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorage').name)]"
+            ],
+            "sku": {
+                "name": "[variables('blobStorage').sku]",
+                "tier": "[variables('blobStorage').tier]"
+            }
+        },
+		{
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2022-05-01",
+            "name": "[concat(variables('blobStorage').name, '/default/', parameters('blob_container_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('blobStorage').name, 'default')]"
+            ]
+        },
+		{
+            "type": "Microsoft.EventHub/namespaces",
+            "apiVersion": "[variables('eventhub').apiVersion]",
+            "name": "[variables('eventhub').name]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[variables('eventhub').sku]",
+                "tier": "[variables('eventhub').tier]",
+                "capacity": "[variables('eventhub').capacity]"
+            }
+        },
+		{
+            "type": "Microsoft.EventHub/namespaces/authorizationrules",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(variables('eventhub').name, '/RootManageSharedAccessKey')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub').name)]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "apiVersion": "[variables('eventhub').apiVersion]",
+            "name": "[concat(variables('eventhub').name, '/sonysmartcamera')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub').name)]"
+            ],
+            "properties": {
+                "messageRetentionInDays": 1,
+                "partitionCount": 1,
+                "status": "Active"
+            }
+        },
+		{
+			"type": "Microsoft.Web/serverfarms",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"name": "[variables('apps').hostingPlan]",
+			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageAcct').name)]"
+			],
+			"sku": {
+				"name": "[variables('apps').skuName]",
+				"tier": "[variables('apps').tier]",
+				"size": "[variables('apps').size]",
+				"family": "[variables('apps').family]",
+				"capacity": 1
+			},
+			"kind": "app",
+			"properties": {
+				"reserved": false
+			}
+		},
+		{
+			"type": "Microsoft.SignalRService/SignalR",
+			"apiVersion": "[variables('signalr').apiVersion]",
+			"name": "[variables('signalr').name]",
+			"location": "[parameters('location')]",
+			"tags": {},
+			"sku": {
+				"name": "[variables('signalr').sku]",
+				"tier": "[variables('signalr').skuTier]",
+				"capacity": 1
+			},
+			"kind": "SignalR",
+			"dependsOn": [
+			],
+			"properties": {
+				"tls": {
+					"clientCertEnabled": false
+				},
+				"features": [{
+					"flag": "ServiceMode",
+					"value": "Classic",
+					"properties": {}
+				}],
+				"cors": {
+					"allowedOrigins": [
+						"[toLower(format('https://{0}.azurewebsites.net', variables('apps').webappName))]",
+						"http://localhost:8000"
+					]
+				}
+			}
+
+		},
+		{
+			"type": "Microsoft.Web/sites",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"name": "[variables('apps').webappName]",
+			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageAcct').name)]",
+				"[resourceId('Microsoft.Web/serverfarms', variables('apps').hostingPlan)]"
+			],
+			"tags": {},
+			"kind": "app",
+			"properties": {
+				"enabled": true,
+				"serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('apps').hostingPlan)]"
+			}
+		},
+		{
+			"type": "Microsoft.Web/sites/config",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"name": "[concat(variables('apps').webappName, '/appsettings')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.SignalRService/SignalR', variables('signalr').name)]",
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorage').name)]",
+				"[resourceId('Microsoft.Web/Sites', variables('apps').webappName)]"
+			],
+			"properties": {
+				"AzureAD__TenantId" :  "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), '', parameters('aad_tenant_id'))]",
+				"AzureAD__ClientId" :  "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), '', parameters('aad_client_id'))]",
+				"AzureAD__Instance" :  "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), '', 'https://login.microsoftonline.com/')]",
+				"AzureAD__CallbackPath" : "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), '', '/signin-oidc')]",
+				"AzureAD__SignedOutCallbackPath" :  "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), '', '/signout-callback-oidc')]",
+				"Azure__UseAAD": "[if(or(empty(parameters('aad_tenant_id')), empty(parameters('aad_client_id'))), 'false', 'true')]",
+				"Azure__Blob__ConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(variables('blobStorage').name), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', toLower(variables('blobStorage').name)), variables('blobStorage').apiVersion).keys[0].value, ';EndpointSuffix=core.windows.net')]",
+				"Azure__Blob__ContainerName": "[parameters('blob_container_name')]",
+				"Azure__SonyAPI__BaseUrl": "[parameters('aitrios_url')]",
+				"Azure__SonyAPI__TokenUrl": "[parameters('token_url')]",
+				"Azure__SonyAPI__ClientId": "[parameters('aitrios_client_id')]",
+				"Azure__SonyAPI__ClientSecret": "[parameters('aitrios_client_secret')]",
+				"Azure__SignalR__ConnectionString": "[concat('Endpoint=https://', toLower(variables('signalr').name), '.service.signalr.net;AccessKey=', listKeys(resourceId('Microsoft.SignalRService/signalR', toLower(variables('signalr').name)), variables('signalr').apiVersion).primaryKey, ';Version=1.0;')]"
+			}
+		},
+		{
+			"condition" : "[and(not(empty(variables('githubrepo').webAppRepoUrl)), not(empty(variables('githubrepo').webAppBranch)))]",
+			"type": "Microsoft.Web/sites/sourcecontrols",
+			"name": "[concat(variables('apps').webappName, '/web')]",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/Sites', variables('apps').webappName)]",
+				"[resourceId('Microsoft.Web/Sites/config', variables('apps').webappName, 'appsettings')]"
+			],
+			"properties": {
+				"RepoUrl": "[variables('githubrepo').webAppRepoUrl]",
+				"branch": "[variables('githubrepo').webAppBranch]",
+				"IsManualIntegration": true
+			}
+		},
+		{
+			"type": "Microsoft.Web/sites",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"name": "[variables('apps').functionsName]",
+			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageAcct').name)]",
+				"[resourceId('Microsoft.Web/serverfarms', variables('apps').hostingPlan)]"
+			],
+			"tags": {},
+			"kind": "functionapp",
+			"identity": {
+				"type": "SystemAssigned"
+			},
+			"properties": {
+				"name": "[variables('apps').functionsName]",
+				"serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('apps').hostingPlan)]",
+				"clientAffinityEnabled": false,
+				"enabled": true,
+				"siteConfig": {
+					"alwaysOn": false,
+					"cors": {
+						"allowedOrigins": [
+							"*"
+						]
+					},
+					"appSettings": [{
+							"name": "FUNCTIONS_EXTENSION_VERSION",
+							"value": "~4"
+						},
+						{
+							"name": "AzureWebJobsSecretStorageType",
+							"value": "Files"
+						}
+					]
+				}
+			},
+			"resources": []
+		},
+		{
+			"type": "Microsoft.Web/sites/config",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"name": "[concat(variables('apps').functionsName, '/appsettings')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.SignalRService/SignalR', variables('signalr').name)]",
+				"[resourceId('Microsoft.EventHub/namespaces', variables('eventhub').name)]",
+				"[resourceId('Microsoft.Web/Sites', variables('apps').functionsName)]"
+			],
+			"properties": {
+				"FUNCTIONS_WORKER_RUNTIME": "dotnet",
+				"FUNCTIONS_EXTENSION_VERSION": "~4",
+				"AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAcct').name,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAcct').name), variables('storageAcct').apiVersion).keys[0].value)]",
+				"AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAcct').name,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAcct').name), variables('storageAcct').apiVersion).keys[0].value)]",
+				"AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalr').name), '.service.signalr.net;AccessKey=', listKeys(resourceId('Microsoft.SignalRService/signalR', toLower(variables('signalr').name)), variables('signalr').apiVersion).primaryKey, ';Version=1.0;')]",
+				"EventHubConnectionString": "[listkeys(resourceId('Microsoft.Eventhub/namespaces/authorizationRules', variables('eventhub').name, 'RootManageSharedAccessKey'), variables('eventhub').apiVersion).primaryConnectionString]"
+			}
+		},
+		{
+			"condition" : "[and(not(empty(variables('githubrepo').functionsRepoUrl)), not(empty(variables('githubrepo').functionsBranch)))]",
+			"type": "Microsoft.Web/sites/sourcecontrols",
+			"name": "[concat(variables('apps').functionsName, '/web')]",
+			"apiVersion": "[variables('apps').apiVersion]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/Sites', variables('apps').functionsName)]",
+				"[resourceId('Microsoft.Web/Sites/config', variables('apps').functionsName, 'appsettings')]"
+			],
+			"properties": {
+				"RepoUrl": "[variables('githubrepo').functionsRepoUrl]",
+				"branch": "[variables('githubrepo').functionsBranch]",
+				"IsManualIntegration": true
+			}
+		}
+	]
+}

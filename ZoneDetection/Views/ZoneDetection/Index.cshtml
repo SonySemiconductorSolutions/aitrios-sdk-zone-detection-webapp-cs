@@ -1,0 +1,429 @@
+﻿@*
+ * Copyright (c) 2023 Sony Semiconductor Solutions Corporation
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+*@
+
+@section scripts {
+    <script type="text/javascript" src="/js/Index.js"></script>
+    <script type="text/javascript" src="/js/SonyApi.js"></script>
+    <script type="text/javascript" src="/js/Token.js"></script>
+    <script type="text/javascript" src="/js/ZoneDetection.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+}
+<body>
+    <section class="content-header" style="padding:0.5em">
+        <div class="container-fluid">
+            <div class="row mb-2" style="margin:0!important">
+                <h3 style="margin:0">ZoneDetection</h3>
+            </div>
+        </div>
+    </section>
+    <!-- Main content -->
+    <div id="loader" class="loading" style="display:none"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-sm-12">
+                <div class="card card-primary card-tabs">
+                    <div class="card-header p-0 pt-1">
+                        <ul class="nav nav-tabs" id="tab-main" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="tab-setup-label" data-toggle="pill" href="#tabs-setup" role="tab" aria-controls="tabs-setup" aria-selected="true">Setup</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-telemetry-label" data-toggle="pill" href="#tab-telemetry" role="tab" aria-controls="tab-telemetry" aria-selected="false">Telemetry/Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-option-label" data-toggle="pill" href="#tab-option" role="tab" aria-controls="tab-option" aria-selected="false">Option</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body ml-2">
+                        <div class="tab-content" id="tab-main">
+                            <div class="tab-pane fade show active" id="tabs-setup" role="tabpanel" aria-labelledby="tab-setup-label">
+                                <div class="row">
+                                    <div class="col-md-3" height="640" width="640" style="min-width:640px; max-width:640px;min-height:640px; padding:0">
+                                        <div class="container loader-parent"  height="640" width="640">
+                                            <div class="row justify-content-center align-items-center">
+                                                <canvas id="captureImageCanvasOverlay"     height="640" width="640" style="max-width:640px;max-height:640px;z-index:300"></canvas>
+                                                <canvas id="captureImageCanvasZoneOverlay" height="640" width="640" style="max-width:640px;max-height:640px;z-index:200;position:absolute"></canvas>
+                                                <canvas id="captureImageCanvas"            height="640" width="640" style="max-width:640px;max-height:640px;z-index:100;position:absolute"></canvas>
+                                            </div>
+                                            <div id="captureImageCanvasLoaderWrapper"  class="canvasLoaderWrapper" height="640" width="640" style="display:none">
+                                                <div id="canvasLoader">
+                                                </div>
+                                                <div class="loading-text canvasLoaderText">Waiting for an image. This can take a few minutes.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="accordion">
+                                            <div class="card card-primary">
+                                                <div class="card-header">
+                                                    <h4 class="card-title w-100">
+                                                        <a class="d-block w-100" data-toggle="collapse" href="#accordionCaptureImage">
+                                                            Step 1 : Capture Image
+                                                        </a>
+                                                    </h4>
+                                                </div>
+                                                <div id="accordionCaptureImage" class="collapse" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        <div class="info-box">
+                                                            <div class="info-box-content">
+                                                                <div class="callout callout-info">
+                                                                    <h5>Capture one image from camera</h5>
+                                                                    <p>Select Device ID and Model ID to use to capture image</p>
+                                                                </div>
+                                                                <label for="captureDeviceIdList">Device ID</label>
+                                                                <div class="form-group">
+                                                                    <div class="input-group">
+                                                                        <select name="captureDeviceIdList" id="captureDeviceIdList" class="form-control custom-select"></select>
+                                                                        <div class="input-group-append">
+                                                                            <button type="button" class="btn btn-success" style="min-width:1em" id="captureDeviceIdListRefreshBtn">
+                                                                                <i class="fas fa-sync btn-fa" style="margin:0"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="captureModelIdList">Model ID</label>
+                                                                    <select name="captureModelIdList" id="captureModelIdList" class="form-control custom-select" disabled></select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="footer-div">
+                                                            <button type="button" class="btn btn-success" id="captureImageBtn" disabled>
+                                                                <i class="fas fa-camera btn-fa"></i>Capture
+                                                            </button>
+                                                            <div class="info-box-text vertical-center" id='captureImageBtnResult'>Place Holder : To be deleted</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card card-primary">
+                                                <div class="card-header">
+                                                    <h4 class="card-title w-100">
+                                                        <a class="d-block w-100" data-toggle="collapse" href="#accordionSpecifyZone">
+                                                            Step 2 : Specify Zone
+                                                        </a>
+                                                    </h4>
+                                                </div>
+                                                <div id="accordionSpecifyZone" class="collapse" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        <div class="info-box">
+                                                            <div class="info-box-content">
+                                                                <div class="callout callout-info">
+                                                                    <h5>Specify zone of interest</h5>
+                                                                    <p>Use mouse to select zone.  Click on a corner to adjust.</p>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-auto">
+                                                                        <div style="text-align:right">
+                                                                            <strong>Top Left</strong>
+                                                                        </div>
+                                                                        <div style="text-align:right">
+                                                                            <strong >Bottom Right</strong>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <div>
+                                                                            <pre class="pre-inline">(x:<pre class="pre-inline" id="region_x"></pre>, y:<pre class="pre-inline" id="region_y"></pre>)</pre>
+                                                                        </div>
+                                                                        <div>
+                                                                            <pre class="pre-inline">(x:<pre class="pre-inline" id="region_w"></pre>, y:<pre class="pre-inline" id="region_h"></pre>)</pre>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card card-primary">
+                                                <div class="card-header">
+                                                    <h4 class="card-title w-100">
+                                                        <a class="d-block w-100" data-toggle="collapse" href="#accordionStartInference">
+                                                            Step 3 : Test Detection
+                                                        </a>
+                                                    </h4>
+                                                </div>
+                                                <div id="accordionStartInference" class="collapse" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        <div class="info-box">
+                                                            <div class="info-box-content">
+                                                                <div class="callout callout-info">
+                                                                    <h5>Set Parameters</h5>
+                                                                    <p>Adjust parameters and test detection.  A bounding box is drawn for each detected object with detection confidence level in Yellow and Overlapping rate (IoU) in Green.</p>
+                                                                </div>
+                                                                <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                                    <label for="captureThresholdSlider" style="margin-right:0.5em; width:15em">Detection Threshold (percent) : </label>
+                                                                    <div class="slider-blue" style="margin:0 1em 0 1em;width:50%; min-width:20%">
+                                                                        <input type="range" class="slider" min="0" max="100" value="80" step="1" id="captureThresholdSlider" style="width:100%">
+                                                                    </div>
+                                                                    <span> <span id="captureThresholdSliderLabel"></span><span> %</span></span>
+                                                                </div>
+                                                                <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                                    <label for="captureIoUThresholdSlider" style="margin-right:0.5em; width:15em;justify-content:right">IoU Threshold (percent) : </label>
+                                                                    <div class="slider-blue" style="margin:0 1em 0 1em;width:50%; min-width:20%">
+                                                                        <input type="range" class="slider" min="0" max="100" value="0" step="1" id="captureIoUThresholdSlider" style="width:100%">
+                                                                    </div>
+                                                                    <span> <span id="captureIoUThresholdSliderLabel"></span><span>&nbsp;%</span></span>
+                                                                </div>
+                                                                <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                                    <label for="captureFrequencySlider" style="margin-right:0.5em; width:15em">Frequency (seconds) : </label>
+                                                                    <div class="slider-blue" style="margin:0 1em 0 1em;width:50%; min-width:20%">
+                                                                        <input type="range" class="slider" min="10" max="60" value="10" step="1" id="captureFrequencySlider" style="width:100%">
+                                                                    </div>
+                                                                    <span id="captureFrequencySliderLabel"></span><span>&nbsp;sec</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="footer-div">
+                                                            <button type="button" class="btn btn-success btn-icon" id="captureStartInferenceBtn" disabled>
+                                                                <i class="fas fa-play btn-fa"></i>Start
+                                                            </button>
+                                                            <button type="button" class="btn btn-success btn-icon" id="captureStopInferenceBtn" disabled>
+                                                                <i class="fas fa-stop btn-fa"></i>Stop
+                                                            </button>
+                                                            <div class="info-box-text vertical-center" id="captureStartInferenceBtnResult">Place Holder : To be deleted</div>
+                                                            <div class="info-box-text text-right" id="elapsedSeconds">Elapsed seconds：<a id="elapsedSecondsValue"></a>sec</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card card-primary">
+                                                <div class="card-header">
+                                                    <h4 class="card-title w-100">
+                                                        <a class="d-block w-100" data-toggle="collapse" href="#accordionSaveParameter">
+                                                            Option : Save Parameters
+                                                        </a>
+                                                    </h4>
+                                                </div>
+                                                <div id="accordionSaveParameter" class="collapse" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        <div class="callout callout-info">
+                                                            <h5>Save Parameters</h5>
+                                                            <p>Save parameters to cookie for future use.  Parameters are saved for 3 days.</p>
+                                                        </div>
+                                                        <div class="div-Button-Right">
+                                                            <button type="button" class="btn btn-success" id="captureSaveParameterBtn" disabled>
+                                                                <i class="fas fa-play btn-fa"></i>Save
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tab-telemetry" role="tabpanel" aria-labelledby="tab-telemetry-label">
+                                <div class="info-box" style="margin-bottom:0.5em">
+                                    <div class="info-box-content">
+                                        <div class="form-group">
+                                            <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                <label for="zoneDetectionDeviceIdList" style="margin-right:0.5em; width:11em;justify-content:right">Device ID : </label>
+                                                <div class="input-group" style="min-width:15em; width:30%">
+                                                    <select name="zoneDetectionDeviceIdList" id="zoneDetectionDeviceIdList" class="form-control custom-select"></select>
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-success" style="min-width:1em" id="zoneDetectionDeviceIdListRefreshBtn">
+                                                            <i class="fas fa-sync btn-fa" style="margin:0"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                <label for="zoneDetectionModelIdList" style="margin-right:0.5em; width:11em;justify-content:right">Model ID : </label>
+                                                <select name="zoneDetectionModelIdList" id="zoneDetectionModelIdList" class="form-control custom-select" style="min-width:15em; width:30%" disabled></select>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="form-group">
+                                                    <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                        <label for="zoneDetectionThresholdSlider" style="margin-right:0.5em; width:11em;justify-content:right">Detection Threshold : </label>
+                                                        <div class="slider-blue" style="margin:0 1em 0 0;width:50%; min-width:20%">
+                                                            <input type="range" class="slider" min="0" max="100" value="80" step="1" id="zoneDetectionThresholdSlider" style="width:100%">
+                                                        </div>
+                                                        <span> <span id="zoneDetectionThresholdSliderLabel"></span><span>&nbsp;%</span></span>
+                                                    </div>
+                                                    <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                        <label for="zoneDetectionIoUThresholdSlider" style="margin-right:0.5em; width:11em;justify-content:right">IoU Threshold : </label>
+                                                        <div class="slider-blue" style="margin:0 1em 0 0;width:50%; min-width:20%">
+                                                            <input type="range" class="slider" min="0" max="100" value="0" step="1" id="zoneDetectionIoUThresholdSlider" style="width:100%">
+                                                        </div>
+                                                    <span> <span id="zoneDetectionIoUThresholdSliderLabel"></span><span>&nbsp;%</span></span>
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                    <label for="zoneDetectionFrequencySlider" style="margin-right:0.5em; width:11em;justify-content:right">Frequency (seconds) : </label>
+                                                    <div class="slider-blue" style="margin:0 1em 0 0;width:50%; min-width:20%">
+                                                        <input type="range" class="slider" min="0" max="60" value="10" step="1" id="zoneDetectionFrequencySlider" style="width:100%">
+                                                    </div>
+                                                    <span id="zoneDetectionFrequencySliderLabel"></span><span>&nbsp;sec</span>
+                                                </div>
+                                                <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                    <label for="zoneDetectionNotificationPeriodSlider" style="margin-right:0.5em; width:11em;justify-content:right">Notificaiton Period : </label>
+                                                    <div class="slider-blue" style="margin:0 1em 0 0;width:50%; min-width:20%">
+                                                        <input type="range" class="slider" min="1" max="60" value="30" step="1" id="zoneDetectionNotificationPeriodSlider" style="width:100%">
+                                                    </div>
+                                                    <span> <span id="zoneDetectionNotificationPeriodSliderLabel"></span><span>&nbsp;sec</span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
+                                                <label for="pplModeSelector" style="margin-right:0.5em; width:11em;justify-content:right">Display Result : </label>
+                                                <select name="pplModeSelector" id="pplModeSelector" class="form-control custom-select" style="width:10em">
+                                                    <option value="0" selected>All</option>
+                                                    <option value="1">In Zone</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="btnStatusDiv">
+                                            <button type="button" class="btn btn-success" id="startZoneDetectionWithImageBtn" disabled>
+                                                <i class="fas fa-play btn-fa"></i>Start Inference
+                                            </button>
+                                            <button type="button" class="btn btn-success" id="startZoneDetectionBtn" disabled>
+                                                <i class="fas fa-play btn-fa"></i>Start Inference (No Image)
+                                            </button>
+                                            <button type="button" class="btn btn-success" id="stopZoneDetectionBtn" disabled>
+                                                <i class="fas fa-stop btn-fa"></i>Stop Inference
+                                            </button>
+                                            <div class="info-box-text vertical-center" id='startZoneDetectionBtnResult'>Place Holder : To be deleted</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="info-box">
+                                    <div class="info-box-content">
+                                        <div class="row">
+                                            <div class="col-md-3" height="320" width="320" style="min-width:320px; max-width:320px;min-height:320px">
+                                                <div class="container loader-parent" height="320" width="320" >
+                                                    <div class="row justify-content-center align-items-center">
+                                                        <canvas id="zoneDetectionCanvasOverlay"     height="320" width="320" style="max-width:320px;max-height:320px;z-index:300"></canvas>
+                                                        <canvas id="zoneDetectionCanvasZoneOverlay" height="320" width="320" style="max-width:320px;max-height:320px;z-index:200;position:absolute"></canvas>
+                                                        <canvas id="zoneDetectionCanvas"            height="320" width="320" style="max-width:320px;max-height:320px;z-index:100;position:absolute"></canvas>
+                                                    </div>
+                                                    <div id="zoneDetectionCanvasLoaderWrapper" class="canvasLoaderWrapper" height="320" width="320" style="display:none">
+                                                        <div id="canvasLoader">
+                                                        </div>
+                                                        <div class="loading-text canvasLoaderText">Waiting for an image. This can take a few minutes.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md" style="min-width:60vw">
+                                                <div id='barChartDiv' class="chart">
+                                                    <canvas id="barChart" style="min-height: 330px; height: 350px; max-height: 350px;width:auto"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tab-option" role="tabpanel" aria-labelledby="tab-option-label">
+                                <div class="col-md-6">
+                                    <div id="accordion">
+                                        <div class="card card-primary">
+                                            <div class="card-header">
+                                                <h4 class="card-title w-100">
+                                                    <a class="d-block w-100" data-toggle="collapse" href="#accordionSetup">
+                                                        Option : Get "Access Token" to Console API.
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                            <div id="accordionSetup" class="collapse show" data-parent="#accordion">
+                                                <form id="loginForm">
+                                                    <div class="card-body">
+                                                        <div class="info-box">
+                                                            <div class="info-box-content">
+                                                                <span class="info-box-text">
+                                                                    <label for="taToken">Token</label>
+                                                                    <textarea id="taToken" class="form-control" cols="30" rows="3" readonly></textarea>
+                                                                </span>
+                                                                <div style="margin-top:0.5em">
+                                                                    <button type="button" class="btn btn-outline-dark" id="copyTokenBtn" disabled>
+                                                                        <i class="fas fa-copy"></i> Copy Token
+                                                                    </button>
+                                                                </div>
+                                                                <span class="info-box-text" style="margin-top:0.5em">
+                                                                    <label for="spanTokenExpire">Expiration:</label>
+                                                                    <span class="info-box-text" style="display:contents" id='spanTokenExpire'></span>
+                                                                </span>
+                                                                <span class="info-box-text" style="margin-top:0.5em">
+                                                                    <label for="spanTokenLastUpdate">Last Update:</label>
+                                                                    <span class="info-box-text" id='spanTokenLastUpdate' style="display:contents"></span>
+                                                                </span>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="footer-div">
+                                                            <div>
+                                                                <button type="button" class="btn btn-success" id="getTokenBtn">
+                                                                    <i class="fas fa-sign-in-alt btn-fa"></i>Get Token
+                                                                </button>
+                                                            </div>
+                                                            <div class="vertical-center">
+                                                                <div class="info-box-text" id='btnGetTokenResult'></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() { 
+
+            if ('@(ViewData["Token"])' != null && '@ViewData["Token"]'.length > 0)
+            {
+                console.debug("ViewData[Token] : " + '@(ViewData["Token"])');
+                document.getElementById('taToken').value = '@(ViewData["Token"])';
+                document.getElementById('taToken').dispatchEvent(new Event("change"));
+            }
+
+            if ('@(ViewData["TokenExpiration"])' != null && '@ViewData["TokenExpiration"]'.length > 0)
+            {
+                console.debug("ViewData[TokenExpiration] : " + '@(ViewData["TokenExpiration"])');
+                var expiration = parseInt('@(ViewData["TokenExpiration"])');
+                var d = new Date(0);
+                d.setUTCSeconds(expiration);
+                document.getElementById('spanTokenExpire').innerHTML =  String(d);
+            }
+        });        
+    </script>
+</body>
