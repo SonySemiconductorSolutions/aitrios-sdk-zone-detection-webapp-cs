@@ -90,7 +90,7 @@ const chartOptions = {
       },
       title: {
         display: true,
-        text: 'Number of Object',
+        text: 'Number of Object in Zone',
         font: {
           size: 15
         }

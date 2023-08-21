@@ -1,61 +1,60 @@
-# Post Vision Appのセットアップとデプロイ
+# 「**Vision and Sensing Application**」のセットアップとデプロイ
 
-Post Vision AppはAI出力をアプリケーション開発に使用できるデータに処理します。</br>
-このセクションでは、侵入検知に利用するPost Vision Appをビルドし、AITRIOS&trade;のConsoleからエッジAIデバイスにデプロイする方法について説明します。
+「**Vision and Sensing Application**」はAI出力をアプリケーション開発に使用できるデータに処理します。</br>
+このセクションでは、侵入検知に利用する「**Vision and Sensing Application**」をビルドし、AITRIOS&trade;の「**Console**」からエッジAIデバイスにデプロイする方法について説明します。
 
 ## コンテンツ <!-- omit in toc -->
 
 - [前提条件](#前提条件)
-- [Post Vision Appをビルドする](#post-vision-appをビルドする)
-  - [1. Dockerイメージをビルド](#1-dockerイメージをビルドする)
+- [「**Vision and Sensing Application**」をビルドする](#Vision-and-Sensing-Applicationをビルドする)
+  - [1. Dockerイメージをビルドする](#1-dockerイメージをビルドする)
   - [2. .wasmファイルをコンテナから取得する](#2-wasmファイルをコンテナから取得する)
-- [Post Vision AppをAITRIOSのConsoleへ登録する](#post-vision-appをaitriosのconsoleへ登録する)
-- [Post Vision AppをエッジAIデバイスにデプロイする](#post-vision-appをエッジaiデバイスにデプロイする)
+- [「**Vision and Sensing Application**」をAITRIOSの「**Console**」へ登録する](#Vision-and-Sensing-Applicationをaitriosのconsoleへ登録する)
+- [「**Vision and Sensing Application**」をエッジAIデバイスにデプロイする](#Vision-and-Sensing-Applicationをエッジaiデバイスにデプロイする)
 - [制限事項](#制限事項)
 
 ## 前提条件
 
-Post Vision Appをビルドするために、Dockerの動作環境が必要です。
+「**Vision and Sensing Application**」をビルドするために、Dockerの動作環境が必要です。
 
 Dockerの動作環境については、[公式のドキュメント](https://matsuand.github.io/docs.docker.jp.onthefly/get-docker/)を参照してセットアップを行うか、
-[開発環境セットアップガイド](https://developer.aitrios.sony-semicon.com/development-guides/get-started/setup-dev/) を参照してVisual Studio CodeとDockerを利用した開発環境のセットアップを行ってください。
+[「**開発環境セットアップガイド**」](https://developer.aitrios.sony-semicon.com/file/download/develop-env-setup/) を参照してVisual Studio CodeとDockerを利用した開発環境のセットアップを行ってください。
 
-## Post Vision Appをビルドする
+## 「**Vision and Sensing Application**」をビルドする
 
 ### 1. Dockerイメージをビルドする
 
-Post Vision Appのビルド環境となるDockerイメージを作成します。
+「**Vision and Sensing Application**」のビルド環境となるDockerイメージを作成します。
 
 - ターミナルで下記のコマンドを実行します
 
   ```bash
-  cd ./sample
-  docker build . -t ppl --no-cache --network host
+  docker build . -t vns_app --no-cache --network host
   ```
 
 ### 2. .wasmファイルをコンテナから取得する
 
-下記の手順で、ビルドしたPost Vision Appの.wasmファイル **`ppl_custom.wasm`** を、**`./sample/post_process/custom`** ディレクトリの下にコピーします。
+下記の手順で、ビルドした「**Vision and Sensing Application**」の.wasmファイル **`vision_app_zonedetection.wasm`** を、**`./`** ディレクトリの下にコピーします。
 
 - ターミナルで下記のコマンドを実行します
 
   ```bash
-  docker create --name ppl ppl
-  docker cp ppl:/root/post_process/custom/ppl_custom.wasm ./post_process/custom
-  docker rm -f ppl
+  docker create --name vns_app vns_app
+  docker cp vns_app:/root/sample/vision_app/single_dnn/zonedetection/vision_app_zonedetection.wasm .
+  docker rm -f vns_app
   ```
 
-## Post Vision AppをAITRIOSのConsoleへ登録する
+## 「**Vision and Sensing Application**」をAITRIOSの「**Console**」へ登録する
 
-作成したPost Vision Appの.wasmファイル **`ppl_custom.wasm`** をAITRIOSのConsoleへ登録し、エッジAIデバイスにデプロイする準備を行います。</br>
-下記の手順の詳細を [Consoleユーザーマニュアル](https://developer.aitrios.sony-semicon.com/file/download/console-developer-edition-ui-manual) にてご確認ください。
+作成した「**Vision and Sensing Application**」の.wasmファイル **`vision_app_zonedetection.wasm`** をAITRIOSの「**Console**」へ登録し、エッジAIデバイスにデプロイする準備を行います。</br>
+下記の手順の詳細を [「**Consoleユーザーマニュアル**」](https://developer.aitrios.sony-semicon.com/documents/console-user-manual) にてご確認ください。
 
 - Applicationの登録
 
-## Post Vision AppをエッジAIデバイスにデプロイする
+## 「**Vision and Sensing Application**」をエッジAIデバイスにデプロイする
 
-登録したPost Vision AppをエッジAIデバイスにデプロイします。</br>
-下記の手順の詳細を [Consoleユーザーマニュアル](https://developer.aitrios.sony-semicon.com/file/download/console-developer-edition-ui-manual) にてご確認ください。
+登録した「**Vision and Sensing Application**」をエッジAIデバイスにデプロイします。</br>
+下記の手順の詳細を [「**Consoleユーザーマニュアル**」](https://developer.aitrios.sony-semicon.com/documents/console-user-manual) にてご確認ください。
 
 - Applicationデプロイ
 
