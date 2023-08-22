@@ -193,71 +193,6 @@ namespace ZoneDetection.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetImages(string token,
-                                                  string deviceId,
-                                                  string sub_directory_name,
-                                                  string number_of_images,
-                                                  string skip,
-                                                  string order_by)
-        {
-            try
-            {
-                string urlSegment = $"devices/{deviceId}/images/directories/{sub_directory_name}";
-                // string urlSegment = "models";
-                List<string> options = new List<string>();
-
-                if (!string.IsNullOrEmpty(number_of_images))
-                {
-                    options.Add($"number_of_images={number_of_images}");
-                }
-
-                if (!string.IsNullOrEmpty(skip))
-                {
-                    options.Add($"skip={skip}");
-                }
-
-                if (!string.IsNullOrEmpty(order_by))
-                {
-                    options.Add($"order_by={order_by}");
-                }
-
-                for (int index = 0; index < options.Count; index++)
-                {
-                    if (index == 0)
-                    {
-                        urlSegment += $"?{options[index]}";
-                    }
-                    else
-                    {
-                        urlSegment += $"&{options[index]}";
-                    }
-                }
-
-                var response = await SendGet(urlSegment, token);
-
-                var jsonString = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return Ok(Json(jsonString));
-                }
-                else
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, Json(jsonString));
-                }
-            }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, Json(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Excetion in {System.Reflection.MethodBase.GetCurrentMethod().Name}() {ex.Message}");
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet]
         public async Task<ActionResult> GetDevice(string token, string deviceId)
         {
             try
@@ -591,7 +526,7 @@ namespace ZoneDetection.Controllers
             else
             {
                 var pplParam = new Dictionary<string, object>();
-                pplParam.Add("header", new { id = "00", version = "01.00.00" });
+                pplParam.Add("header", new { id = "00", version = "01.01.00" });
                 pplParam.Add("dnn_output_detections", 10);
                 pplParam.Add("max_detections", 10);
                 pplParam.Add("threshold", 0.3);

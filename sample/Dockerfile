@@ -1,4 +1,4 @@
-# Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+# Copyright 2023 Sony Semiconductor Solutions Corp. All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
 
 FROM ubuntu:20.04
 
-COPY ppl_sdk/ /root/ppl_sdk/
-COPY post_process/ /root/post_process/
-ENV PATH $PATH:/root/ppl_sdk/bin
+COPY vision_app_sdk/ /root/vision_app_sdk/
+COPY sample/ /root/sample/
+COPY third_party/ /root/third_party/
 RUN apt-get update \
     && apt-get install -y \
-       flatbuffers-compiler \
        make \
        libxml2 \
        wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 RUN cd /opt \
-    && wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-16/wasi-sdk-16.0-linux.tar.gz \
-    && tar zxvf wasi-sdk-16.0-linux.tar.gz \
-    && ln -s wasi-sdk-16.0 wasi-sdk \
-    && rm wasi-sdk-16.0-linux.tar.gz
+    && wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-19/wasi-sdk-19.0-linux.tar.gz \
+    && tar zxvf wasi-sdk-19.0-linux.tar.gz \
+    && ln -s wasi-sdk-19.0 wasi-sdk \
+    && rm wasi-sdk-19.0-linux.tar.gz
 RUN cd /opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi \
     && mv crt1-command.o crt1-command.o.bak
 WORKDIR /root
-RUN cd post_process/custom \
-    && make
+RUN cp third_party/include/wasm-micro-runtime/pthread.h /opt/wasi-sdk/share/wasi-sysroot/include
+COPY third_party/lib/libc_for_pthread.a /opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi/libc.a
+RUN cd sample && make

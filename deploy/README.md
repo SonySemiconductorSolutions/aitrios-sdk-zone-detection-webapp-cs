@@ -1,6 +1,6 @@
-# ZoneDetection Deployment Procedure
+# "**ZoneDetection**" Deployment Procedure <!-- omit in toc -->
 
-## Content
+## Content <!-- omit in toc -->
 
 - [Overview](#overview)
 - [Prerequisite](#prerequisite)
@@ -15,7 +15,7 @@
 - [How to deploy](#how-to-deploy)
   - [1. Deploy WebApp](#1-deploy-webapp)
   - [2. Deploy Functions](#2-deploy-functions)
-- [Set up external forwarding in the Console](#set-up-external-forwarding-in-the-console)
+- [Set up external forwarding in the "**Console**"](#set-up-external-forwarding-in-the-console)
   - [1. Get token information](#1-get-token-information)
   - [2. Get Event Hubs information](#2-get-event-hubs-information)
   - [3. Run UpdateIRHubConnector API](#3-run-updateirhubconnector-api)
@@ -31,14 +31,21 @@ This procedure provides how to build an environment and how to deploy resources.
 
 To proceed with this deployment procedure, you will need the following services and information:. Check in advance.
 
-- Create an Azure account and resource group</br> 
+- Create an Azure account and resource group  
   Get the information that will be used during deployment from the Azure Portal. Here is the information you need:
   - Subscription Name
   - Resource group name
-- Connection information to access the Console </br> 
-  Get the information that will be used during deployment from the Console. Here is the information you need:
+
+- Connection information for accessing the "**Console**"  
+  Refer to the client application list of "**Portal for AITRIOS**" or register the client application for the sample application if necessary to get the following information:  
+  See the "Issuing a Client Secret for SDK" in ["**Portal User Manual**"](https://developer.aitrios.sony-semicon.com/en/documents/portal-user-manual) for more information.
   - Client ID
   - Secret
+
+  Get the following required information from [this material](https://developer.aitrios.sony-semicon.com/en/file/download/rest-api-authentication).
+  - AITRIOS URL
+  - Token URL 
+
 - Create a Git account and access to "SonySemiconductorSolutions"
 
 ## Advance preparation
@@ -48,7 +55,7 @@ To proceed with this deployment procedure, you will need the following services 
 Install the following software on your PC.
 
 - Install Visual Studio Code (Hereafter referred to as VS Code) </br>
-  Get the installer for your environment from the [official site](https://azure.microsoft.com/ja-jp/products/visual-studio-code/).
+  Get the installer for your environment from the [official site](https://azure.microsoft.com/en-us/products/visual-studio-code/).
 
 - Install .NET6.0 </br>
   Get the installer for your environment from the [official site](https://dotnet.microsoft.com/en-us/download/dotnet/6.0).
@@ -58,7 +65,7 @@ Install the following software on your PC.
 Launch VS Code on your PC and install the following extensions.
 
 - Azure tools
-- Azure cli
+- Azure CLI Tools
 - C#
 - C# extensions
 - Auto-using for c#
@@ -83,7 +90,7 @@ If you use the git command, you can clone the repository by executing the follow
   git clone https://github.com/SonySemiconductorSolutions/aitrios-sdk-zone-detection-functions-cs.git  
   ```
 
-See the [GitHub Docs](https://docs.github.com/ja/repositories/creating-and-managing-repositories/cloning-a-repository) for other clone methods.
+See the [GitHub Docs](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for other clone methods.
 
 ## How to build an environment
 
@@ -91,8 +98,8 @@ See the [GitHub Docs](https://docs.github.com/ja/repositories/creating-and-manag
 
 Get the application (client) ID and directory (tenant) ID to use during deployment.
 
-> **Note** 
-> If you do not want to set up Azure Active Directory authentication, hereafter referred to as AAD authentication, the following procedures are not required.</br> 
+> **Note**  
+> If you do not want to set up Azure Active Directory authentication, hereafter referred to as AAD authentication, the following procedures are not required.  
 > Go to the "[2. Custom deployment using template](#2-custom-deployment-using-template)".
 
 - Go to the [Azure Portal Home](https://portal.azure.com/#home)
@@ -114,9 +121,9 @@ Get the application (client) ID and directory (tenant) ID to use during deployme
 - Select the [**Export template**] from the left sidebar of the selected resource groups screen
 - Select the [**Deploy**] from the top tab to navigate to the custom deployment screen 
 - Select the [**Edit template**] to navigate to the edit template screen
-- Select the [**Load file**] from the top tab to launch a dialog to open 
+- Select the [**Load file**] from the top tab to launch a dialog to open
 - Select the template file, **`./deploy/azuredeploy.json`**, from the cloned WebApp repository 
-- Press the [**Save**] button to return to the custom deployment screen 
+- Press the [**Save**] button to return to the custom deployment screen
 - On the custom deployment screen, input each item
 
   Input each item using the following table as a reference. 
@@ -133,9 +140,11 @@ Get the application (client) ID and directory (tenant) ID to use during deployme
   | [**Eventhub_name**] | Set the name of the Eventhub. | Any value |
   | [**Storage_account_name**] | Set the name of the storage account. | Any value |
   | [**Storage_account_type**] | Set the storage account type. | Standard_LRS |
+  | [**Blob_storage_name**] | Set the name of Blob Storage. | Any value |
+  | [**Blob_storage_type**] | Set the type of Blob Storage. | Standard_LRS |
   | [**Blob_container_name**] | Set the name of the Blob Container. | Any value |
-  | [**Aitios_url**] | Set the Console URL. | "https://console.aitrios.sony-semicon.com/api/v1" |
-  | [**Token_url**] | Set the URL to get the Console token. | "https://auth.aitrios.sony-semicon.com/oauth2/default/v1/token" |
+  | [**Aitrios_url**] | Set the "**Console**" URL. | AITRIOS URL |
+  | [**Token_url**] | Set the URL to get the "**Console**" token. | Token URL |
   | [**Aitrios_client_id**] | Set the client ID for AITRIOS. | Client ID |
   | [**Aitrios_client_secret**] | Set the secret for AITRIOS. | Secret |
   | [**Aad_tenand_id**] | Set for AAD authentication. | Directory (tenant) ID |
@@ -147,21 +156,21 @@ Get the application (client) ID and directory (tenant) ID to use during deployme
 
 - Press the [**Review + create**] button
 
-  > **Note**
+  > **Note**  
   > The terms and conditions appear. Read it carefully before proceeding to the next procedure.
 
 - Press the [**Create**] button to start deployment
 
-  > **Note**
-  > The deployment process takes some time.</br>
+  > **Note**  
+  > The deployment process takes some time.  
   > When the deployment is complete, you'll see the words "Your deployment is complete" on the screen.
 
 ### 3. Add authentication for WebApp
 
 Add authentication for the deployed App Service to the app registration created in the "[1. Register application](#1-register-application)".
 
-> **Note** 
-> If you do not want to set up AAD authentication, following procedures are not required.</br> 
+> **Note**  
+> If you do not want to set up AAD authentication, following procedures are not required.  
 > Go to the [How to deploy](#how-to-deploy)
 
 - Go to the [Azure Portal Home](https://portal.azure.com/#home)
@@ -194,13 +203,13 @@ Add authentication for the deployed App Service to the app registration created 
 
 - Click the [**Azure**] button on the activity bar to sign in to Azure
 - From the list of App Services in the sidebar, right-click [**Web_app_name**] set in the "[2. Custom deployment using template](#2-custom-deployment-using-template)" 
-- Select the [**Deploy to Web App...**]　from the context menu
+- Select the [**Deploy to Web App...**] from the context menu
 
-  ![WebApp_deploy](WebApp_deploy.png)
+  ![Deploy WebApp](WebApp_deploy.png)
 
-- Select the current directory in the path selection dialog on the command palette 
-- After the deployment confirmation dialog is launched, press the [**Deploy**] botton 
-- If the deployment is successful, a " Deployment to [**Web_app_name**] completed. " dialog appears.
+- Select the root directory of the cloned WebApp in the path selection dialog on the command palette 
+- After the deployment confirmation dialog is launched, press the [**Deploy**] button 
+- If the deployment is successful, a "Deployment to [**Web_app_name**] completed." dialog appears.
 
 </br>
 
@@ -210,29 +219,31 @@ Add authentication for the deployed App Service to the app registration created 
 - Open a VS Code terminal and run the following command
 
   ```bash
-  cd ZoneDetection
+  cd ZoneDetectionFunction
   dotnet restore
   dotnet publish -c release
   ```
 
 - Click the [**Azure**] button on the activity bar to sign in to Azure
 - From the list of Functions in the sidebar, right-click [**Function_app_name**] set in the "[2. Custom deployment using template](#2-custom-deployment-using-template)" 
-- Select the [**Deploy to Function App...**]　from the context menu
+- Select the [**Deploy to Function App...**] from the context menu
 
-  ![Functions_deploy](Functions_deploy.png)
+  ![Deploy Functions](Functions_deploy.png)
 
-- Select the current directory in the path selection dialog on the command palette 
-- After the deployment confirmation dialog is launched, press the [**Deploy**] botton 
-- If the deployment is successful, a " Deployment to [**Function_app_name**] completed. " dialog appears.
+- Select the root directory of the cloned WebApp in the path selection dialog on the command palette 
+  > **Note**  
+  > If the "Initialize project for use with VS Code?" dialog appears, press the [**Yes**] button to proceed to the next step.
+- After the deployment confirmation dialog is launched, press the [**Deploy**] button 
+- If the deployment is successful, a "Deployment to [**Function_app_name**] completed." dialog appears.
 
-## Set up external forwarding in the Console
+## Set up external forwarding in the "**Console**"
 
-Configure external forwarding through the Console API.
+Configure external forwarding through the "**Console REST API**".
 
 ### 1. Get token information
 
-Access the deployed WebApp to get the token information needed to run the Console API.</br> 
-Follow the procedures to get the WebApp URL and access it from your browser.
+Access the deployed WebApp to get the token information needed to run the
+"**Console REST API**". Follow the procedures to get the WebApp URL and access it from your browser.
 
 - Go to the [Azure Portal Home](https://portal.azure.com/#home)
 - Select the [**App Services**] from the [**Azure services**]
@@ -256,35 +267,36 @@ Get Event Hubs information that is a parameter of the UpdateIRHubConnector API.
 
 ### 3. Run UpdateIRHubConnector API
 
-Run the UpdateIRHubConnector API with the gotten token information and connection string. </br> 
-See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/development-guides/reference/api-references/) for details on the API.</br> 
+Run the UpdateIRHubConnector API with the gotten token information and connection string.  
+See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/en/development-guides/reference/api-references/) for details on the API. 
 The following procedure is an example of using Postman.
 
 - Create a new PUT request in Postman
-- Set the URL to **`https://console.aitrios.sony-semicon.com/api/v1/connector/ir_hub`** 
+- Set the URL to **`[Aitrios_url]/connector/ir_hub`** 
 - Switch to the [**Auth**] tab and set the [**Type**] to the **`Bearer Token`**
 - Set gotten token information in the [**Token**]
 - Switch to the [**Body**] tab and specify the input format to the **`JSON`** in **`raw`**
-- Set the required parameters in JSON </br> 
+- Set the required parameters in JSON  
   The following is an example of setting the Body data. Set it according to your environment.
 
   ```JSON
   {
     "url": "connection string",
-    "name": "[Eventhub_name]"
+    "name": "sonysmartcamera"
   }
   ```
 
-  > **Note** [**Eventhub_name**] is the value created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)".
+  > **Note**  
+  > [**Eventhub_name**] is the value created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)".
 
-- Press the [**Send**] button and check the response</br> 
+- Press the [**Send**] button and check the response  
   If successful, you will receive a response code of "200".
 
 ### 4. Get storage account information
 
 - Go to the [Azure Portal Home](https://portal.azure.com/#home)
 - Select the [**Storage accounts**] from the [**Azure services**]
-- Select the [**Storage_account_name**] created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)" 
+- Select the [**Blob_storage_name**] created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)" 
 - Select the [**Endpoints**] from the left sidebar 
 - Make a note of the URL in the [**Blob service**] 
 - Select the [**Access keys**] from the left sidebar 
@@ -292,16 +304,16 @@ The following procedure is an example of using Postman.
 
 ### 5. Run UpdateStorageConnector API
 
-Run the UpdateStorageConnector API with the gotten token information and connection string. </br> 
-See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/development-guides/reference/api-references/) for details on the API.</br> 
+Run the UpdateStorageConnector API with the gotten token information and connection string.  
+See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/en/development-guides/reference/api-references/) for details on the API. 
 The following procedure is an example of using Postman.
 
 - Create a new PUT request in Postman
-- Set the URL to **`https://console.aitrios.sony-semicon.com/api/v1/connector/storage`** 
+- Set the URL to **`[Aitrios_url]/connector/storage`** 
 - Switch to the [**Auth**] tab and set the [**Type**] to the **`Bearer Token`**
 - Set gotten token information in the [**Token**]
 - Switch to the [**Body**] tab and specify the input format to the **`JSON`** in **`raw`**
-- Set the required parameters in JSON </br> 
+- Set the required parameters in JSON  
   The following is an example of setting the Body data. Set it according to your environment.
 
   ```JSON
@@ -312,9 +324,10 @@ The following procedure is an example of using Postman.
   }
   ```
 
-  > **Note** [**Blob_container_name**] is the value created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)".
+  > **Note**  
+  > [**Blob_container_name**] is the value created in the "[2. Custom deployment using template](#2-custom-deployment-using-template)".
 
-- Press the [**Send**] button and check the response</br> 
+- Press the [**Send**] button and check the response  
   If successful, you will receive a response code of "200".
 
 ## Restrictions

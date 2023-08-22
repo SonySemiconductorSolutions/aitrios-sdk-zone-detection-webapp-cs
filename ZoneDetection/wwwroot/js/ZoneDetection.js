@@ -489,11 +489,16 @@ async function SetFromCommandParameterToDOM () {
         currentThreshold = param.PPLParameter.threshold
       }
     }
-    if (param.UploadInterval !== undefined) {
+    if (param.UploadInterval !== undefined && param.UploadInterval !== 1) {
       captureFrequencySlider.value = Math.round((param.UploadInterval / 1000) * 33.3)
       captureFrequencySliderLabel.innerHTML = Math.round((param.UploadInterval / 1000) * 33.3)
       zoneDetectionFrequencySlider.value = Math.round((param.UploadInterval / 1000) * 33.3)
       zoneDetectionFrequencyLabel.innerHTML = Math.round((param.UploadInterval / 1000) * 33.3)
+    } else if (param.UploadInterval !== undefined && param.UploadInterval === 1) {
+      captureFrequencySlider.value = 0
+      captureFrequencySliderLabel.innerHTML = 0
+      zoneDetectionFrequencySlider.value = 0
+      zoneDetectionFrequencyLabel.innerHTML = 0
     }
     return true
   }
@@ -753,13 +758,16 @@ async function telemetryEventsProcessMessage (signalRMsg, barChart, threshold, i
 
     for (let i = 0; i < inference.inferenceResults.length; i++) {
       const inferenceResults = inference.inferenceResults
-      if ((pplMode === 0) || (inferenceResults[i].P >= threshold && inferenceResults[i].iou >= iouThreshold)) {
-        if (updateCanvas) {
+      // DrawingBoundingBox process in no-image mode
+      if (updateCanvas) {
+        if (pplMode === 0 && inferenceResults[i].P >= threshold) {
+          DrawBoundingBox(inferenceResults[i], canvasOverlay, threshold, 1, 1)
+        } else if (inferenceResults[i].P >= threshold && inferenceResults[i].iou >= iouThreshold) {
           DrawBoundingBox(inferenceResults[i], canvasOverlay, threshold, 1, 1)
         }
       }
 
-      if (inferenceResults[i].P >= threshold && inferenceResults[i].iou >= iouThreshold) {
+      if (inferenceResults[i].P >= threshold && inferenceResults[i].Zoneflag) {
         if (iouStart == null) {
           iouStart = getDate(inference.T)
         } else {
@@ -835,7 +843,7 @@ async function testDetectionProcessMessage (signalRMsg, threshold, iouThreshold,
     const imageUrl = `${imagePath[1]}/${imagePath[2]}/${imagePath[3]}/${inference.T}.jpg`
     await testDetectionDrawingToCanvas(imageUrl, inference.inferenceResults, threshold, iouThreshold, retryCount)
   } catch (err) {
-    console.error(`${funcName}: ${err.statusText}`)
+    console.error(`testDetectionProcessMessage: ${err.statusText}`)
   }
 }
 
@@ -865,7 +873,7 @@ async function telemetryEventsGenerateImagePath (signalRMsg, threshold, iouThres
     const imageUrl = `${imagePath[1]}/${imagePath[2]}/${imagePath[3]}/${inference.T}.jpg`
     await telemetryEventsDrawingToCanvas(imageUrl, inference.inferenceResults, threshold, iouThreshold, retryCount)
   } catch (err) {
-    console.error(`${funcName}: ${err.statusText}`)
+    console.error(`telemetryEventsGenerateImagePath: ${err.statusText}`)
   }
 }
 
@@ -1039,9 +1047,10 @@ async function telemetryEventsDrawingToCanvas (imagePath, inferenceResults, thre
             for (let i = 0; i < inferenceResults.length; i++) {
               const data = inferenceResults[i]
 
-              // Draw a bounding box if P is above threshold
-              // console.debug(`>> Threshold ${threshold} P ${data.P}`)
-              if ((pplMode === 0) || (data.P >= threshold && data.iou >= iouThreshold)) {
+              // DrawingBoundingBox process in image mode
+              if (pplMode === 0 && data.P >= threshold) {
+                DrawBoundingBox(data, canvasOverlay, threshold, ratioX, ratioY)
+              } else if (data.P >= threshold && data.iou >= iouThreshold) {
                 DrawBoundingBox(data, canvasOverlay, threshold, ratioX, ratioY)
               }
             }
@@ -1109,13 +1118,11 @@ async function StartInference (resultElementId) {
     if (checkTokenExp(token)) await getToken()
     setResultElement(resultElement, 'Starting Inference')
     let frequency = parseInt(document.getElementById('zoneDetectionFrequencySlider').value)
-    // to ms, but min 10 sec interval
-    frequency = Math.max(10, frequency)
-    frequency = Math.round((frequency * 1000) / 33.3)
+    frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
     const PPLParameter = {
       header: {
         id: '00',
-        version: '01.00.00'
+        version: '01.01.00'
       },
       dnn_output_detections: 64,
       max_detections: 5,
@@ -1196,7 +1203,7 @@ async function StartZoneDetection (resultElementId, withImage) {
     if (checkTokenExp(token)) await getToken()
     setResultElement(resultElement, 'Starting Zone Detection Inference')
     let frequency = parseInt(document.getElementById('zoneDetectionFrequencySlider').value)
-    frequency = Math.max(1, Math.round((frequency * 1000) / 33.3))
+    frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
     const modelId = currentModelId
     const NumberOfInferencesPerMessage = null
     const CropHOffset = null
@@ -1212,7 +1219,7 @@ async function StartZoneDetection (resultElementId, withImage) {
     const PPLParameter = {
       header: {
         id: '00',
-        version: '01.00.00'
+        version: '01.01.00'
       },
       dnn_output_detections: 64,
       max_detections: 5,
@@ -1233,10 +1240,9 @@ async function StartZoneDetection (resultElementId, withImage) {
     if (withImage === true) {
       // Image & Inference results
       const Mode = 1 // Image & Inference results
-      const FrequencyOfImages = Math.max(frequency, Math.round(10000 / 33.3)).toString()
       await ManagementCommandParameter(currentDeviceId, COMMAND_PARAM_FILE_NAME, null, 'StartUploadInferenceData',
         Mode, UploadMethod, FileFormat, UploadMethodIR, CropHOffset, CropVOffset, CropHSize, CropVSize,
-        NumberOfImages, FrequencyOfImages, NumberOfInferencesPerMessage, MaxDetectionsPerFrame, null, null, PPLParameter, modelId)
+        NumberOfImages, frequency, NumberOfInferencesPerMessage, MaxDetectionsPerFrame, null, null, PPLParameter, modelId)
 
       await $.ajax({
         async: true,
@@ -1393,8 +1399,8 @@ async function SaveParameter () {
     // var result = JSON.parse(response.value)
   })
   let frequency = parseInt(captureFrequencySliderLabel.innerHTML)
-  frequency = Math.max(1, Math.round((frequency * 1000) / 33.3))
-  const FrequencyOfImages = Math.max(frequency, Math.round(10000 / 33.3)).toString()
+  frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
+  const FrequencyOfImages = frequency.toString()
   const modelId = currentModelId
   const NumberOfInferencesPerMessage = null
   const CropHOffset = null
@@ -1410,7 +1416,7 @@ async function SaveParameter () {
   const PPLParameter = {
     header: {
       id: '00',
-      version: '01.00.00'
+      version: '01.01.00'
     },
     dnn_output_detections: 64,
     max_detections: 5,
