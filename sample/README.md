@@ -18,7 +18,7 @@ This section describes how to build a "**Vision and Sensing Application**" for z
 To build the "**Vision and Sensing Application**", you need an environment that runs Docker.
 
 See the [official documentation](https://docs.docker.com/get-docker/) to set up an environment that runs Docker, or 
-see the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/file/download/sdk-getting-started/) to set up a development environment using Visual Studio Code and Docker.
+see the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/downloads#sdk-getting-started) to set up a development environment using Visual Studio Code and Docker.
 
 ## Build "**Vision and Sensing Application**"
 
