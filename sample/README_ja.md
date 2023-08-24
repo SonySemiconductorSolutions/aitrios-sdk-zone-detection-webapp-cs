@@ -18,7 +18,7 @@
 「**Vision and Sensing Application**」をビルドするために、Dockerの動作環境が必要です。
 
 Dockerの動作環境については、[公式のドキュメント](https://matsuand.github.io/docs.docker.jp.onthefly/get-docker/)を参照してセットアップを行うか、
-[「**開発環境セットアップガイド**」](https://developer.aitrios.sony-semicon.com/file/download/develop-env-setup/) を参照してVisual Studio CodeとDockerを利用した開発環境のセットアップを行ってください。
+[「**開発環境セットアップガイド**」](https://developer.aitrios.sony-semicon.com/downloads#sdk-getting-started) を参照してVisual Studio CodeとDockerを利用した開発環境のセットアップを行ってください。
 
 ## 「**Vision and Sensing Application**」をビルドする
 
