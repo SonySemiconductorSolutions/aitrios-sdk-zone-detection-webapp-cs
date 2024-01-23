@@ -94,7 +94,7 @@ Azure PortalとARMテンプレートを使用して、Azureリソースをデプ
 
 ## 参照
 
-- ["**Developer Site**"](https://developer.aitrios.sony-semicon.com/en)
+- ["**Developer Site**"](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/)
 
 ## 商標
 

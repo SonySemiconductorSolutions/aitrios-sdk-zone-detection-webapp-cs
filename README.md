@@ -94,7 +94,7 @@ See the ["**README**"](./ZoneDetection/README.md) for an overview of the applica
 
 ## See also
 
-- ["**Developer Site**"](https://developer.aitrios.sony-semicon.com/en)
+- ["**Developer Site**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/)
 
 ## Trademark
 
