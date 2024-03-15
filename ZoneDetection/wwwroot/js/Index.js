@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Sony Semiconductor Solutions Corporation
+ * Copyright (c) 2023, 2024 Sony Semiconductor Solutions Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,7 @@ let rectZone = [-1, -1, -1, -1]
 let capturePhotoUrl
 let token
 let pplMode = 0
+let withImage = false
 const COMMAND_PARAM_FILE_NAME = 'ST_COMMAND_PARAM.json'
 let testDetectionFlg = false
 let elapsedTimer
@@ -245,7 +246,7 @@ $('#accordionCaptureImage').on('show.bs.collapse', async function (evt) {
   const deviceListId = 'captureDeviceIdList'
 
   if (document.getElementById(deviceListId).length === 0) {
-    // List empty.  Gather device list.
+    // List empty.  Gather Edge Device list.
 
     toggleLoader(false)
 
@@ -340,7 +341,7 @@ $('#accordionSaveParameter').on('show.bs.collapse', function (evt) {
 // //////////////////////////////////////////////////////////////
 // Tabs
 // //////////////////////////////////////////////////////////////
-// Populate device list and model list when the tab is opened.
+// Populate Edge Device list and model list when the tab is opened.
 $('#tab-telemetry-label').on('show.bs.tab', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'startZoneDetectionBtnResult'
@@ -349,7 +350,7 @@ $('#tab-telemetry-label').on('show.bs.tab', async function (evt) {
   // only the first time
   if (document.getElementById(deviceListId).length === 0) {
     toggleLoader(false)
-    // List empty.  Gather device list.
+    // List empty.  Gather Edge Device list.
     await GetDevices(deviceListId, true, false, 'Select Device', '0', resultElementId)
       .then((response) => {
         if (response === false) {
@@ -363,7 +364,7 @@ $('#tab-telemetry-label').on('show.bs.tab', async function (evt) {
       })
   }
 
-  // Set selected device
+  // Set selected Edge Device
   if (currentDeviceId !== undefined) {
     setSelectOption('zoneDetectionDeviceIdList', currentDeviceId)
   }
@@ -461,11 +462,11 @@ $('#captureDeviceIdList').on('change', async function (evt) {
   const resultElementId = 'captureImageBtnResult'
 
   // populate model list if
-  // current device is not selected
-  // selected device is changed
+  // current Edge Device is not selected
+  // selected Edge Device is changed
   // model list is empty
   if ((currentDeviceId === undefined) || (currentDeviceId !== deviceList[deviceList.selectedIndex].value) || (document.getElementById(modelListId).length === 0)) {
-    // a different device is selected.  Clear current model id.
+    // a different Edge Device is selected.  Clear current model id.
     if (currentDeviceId !== deviceList[deviceList.selectedIndex].value) {
       currentModelId = undefined
     }
@@ -477,7 +478,7 @@ $('#captureDeviceIdList').on('change', async function (evt) {
         deviceList[deviceList.selectedIndex].setAttribute('data-isDisconnected', isDisconnected)
 
         if (isDisconnected === false) {
-          // Make sure the device is not running inference.
+          // Make sure the Edge Device is not running inference.
           await StopInference(null)
         }
         await SetFromCommandParameterToDOM()
@@ -511,8 +512,8 @@ $('#captureModelIdList').on('change', function (evt) {
     disableUiElements(true)
   }
 
-  // device and model are selected.  Check to see if the device is connected or not.
-  // If the device is online, enable capture button.
+  // Edge Device and model are selected.  Check to see if the Edge Device is connected or not.
+  // If the Edge Device is online, enable capture button.
   if (deviceList.selectedIndex > 0 && modelList.selectedIndex > 0) {
     const isDisconnected = (deviceList[deviceList.selectedIndex].getAttribute('data-isDisconnected') === 'true')
     $('#captureImageBtn').prop('disabled', isDisconnected)
@@ -550,7 +551,7 @@ $('#zoneDetectionDeviceIdList').on('change', async function (evt) {
         $('#startZoneDetectionWithImageBtn').prop('disabled', true)
       }
 
-      // make sure the device is not running inference.
+      // make sure the Edge Device is not running inference.
       if (isDisconnected === false) {
         await StopInference(null)
       }
@@ -573,7 +574,7 @@ $('#zoneDetectionModelIdList').on('change', async function (evt) {
   const modelList = document.getElementById(modelListId)
   currentModelId = modelList[modelList.selectedIndex].value
 
-  // enable start buttons only when a device is online.
+  // enable start buttons only when a Edge Device is online.
   if (deviceList.selectedIndex > 0 && modelList.selectedIndex > 0) {
     const isDisconnected = (deviceList[deviceList.selectedIndex].getAttribute('data-isDisconnected') === 'true')
     $('#startZoneDetectionWithImageBtn').prop('disabled', isDisconnected)
@@ -589,7 +590,7 @@ $('#pplModeSelector').on('change', async function (evt) {
 // Button Clicks
 // //////////////////////////////////////////////////////////////
 
-// Refresh Device List for Setup 1 -> Step 1 : Capture Image
+// Refresh Edge Device List for Setup 1 -> Step 1 : Capture Image
 $('#captureDeviceIdListRefreshBtn').click(function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'captureImageBtnResult'
@@ -672,7 +673,7 @@ $('#captureSaveParameterBtn').click(function (evt) {
     })
 })
 
-// Refresh device list in Zone Detection Tab
+// Refresh Edge Device list in Zone Detection Tab
 $('#zoneDetectionDeviceIdListRefreshBtn').click(function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'startZoneDetectionBtnResult'
@@ -702,8 +703,9 @@ $('#startZoneDetectionBtn').click(async function (evt) {
   // set attribute so we know which API to use to stop inference
   document.getElementById('stopZoneDetectionBtn').setAttribute('data-withImage', false)
 
+  withImage = false
   // No image
-  await StartZoneDetection('startZoneDetectionBtnResult', false)
+  await StartZoneDetection('startZoneDetectionBtnResult')
     .then((bStarted) => {
       if (bStarted) {
         isZoneDetectionRunning = true
@@ -724,8 +726,9 @@ $('#startZoneDetectionWithImageBtn').click(async function (evt) {
   // set attribute so we know which API to use to stop inference
   document.getElementById('stopZoneDetectionBtn').setAttribute('data-withImage', true)
 
+  withImage = true
   // With Image
-  await StartZoneDetection('startZoneDetectionBtnResult', true)
+  await StartZoneDetection('startZoneDetectionBtnResult')
     .then((bStarted) => {
       if (bStarted) {
         isZoneDetectionRunning = true

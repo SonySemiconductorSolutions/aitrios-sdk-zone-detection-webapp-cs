@@ -38,13 +38,13 @@ To proceed with this deployment procedure, you will need the following services 
 
 - Connection information for accessing the "**Console**"  
   Refer to the client application list of "**Portal for AITRIOS**" or register the client application for the sample application if necessary to get the following information:  
-  See the "Issuing a Client Secret for SDK" in ["**Portal User Manual**"](https://developer.aitrios.sony-semicon.com/en/documents/portal-user-manual) for more information.
+  See the "Issuing a Client Secret for SDK" in ["**Portal User Manual**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/portal-user-manual/) for more information.
   - Client ID
   - Secret
 
-  Get the following required information from [this material](https://developer.aitrios.sony-semicon.com/en/file/download/rest-api-authentication).
-  - AITRIOS URL
-  - Token URL 
+  Get the following required information from [this material](https://developer.aitrios.sony-semicon.com/en/file/download/edge-ai-sensing-portal-console-end-point-info/).
+  - Console endpoint
+  - Portal endpoint 
 
 - Create a Git account and access to "SonySemiconductorSolutions"
 
@@ -143,8 +143,8 @@ Get the application (client) ID and directory (tenant) ID to use during deployme
   | [**Blob_storage_name**] | Set the name of Blob Storage. | Any value |
   | [**Blob_storage_type**] | Set the type of Blob Storage. | Standard_LRS |
   | [**Blob_container_name**] | Set the name of the Blob Container. | Any value |
-  | [**Aitrios_url**] | Set the "**Console**" URL. | AITRIOS URL |
-  | [**Token_url**] | Set the URL to get the "**Console**" token. | Token URL |
+  | [**Aitrios_url**] | Set the "**Console**" URL. | Console endpoint |
+  | [**Token_url**] | Set the URL to get the "**Console**" token. | Portal endpoint |
   | [**Aitrios_client_id**] | Set the client ID for AITRIOS. | Client ID |
   | [**Aitrios_client_secret**] | Set the secret for AITRIOS. | Secret |
   | [**Aad_tenand_id**] | Set for AAD authentication. | Directory (tenant) ID |
@@ -268,7 +268,7 @@ Get Event Hubs information that is a parameter of the UpdateIRHubConnector API.
 ### 3. Run UpdateIRHubConnector API
 
 Run the UpdateIRHubConnector API with the gotten token information and connection string.  
-See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/en/development-guides/reference/api-references/) for details on the API. 
+See the [Console REST API Specification](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/console-rest-api-specification/) for details on the API. 
 The following procedure is an example of using Postman.
 
 - Create a new PUT request in Postman
@@ -305,7 +305,7 @@ The following procedure is an example of using Postman.
 ### 5. Run UpdateStorageConnector API
 
 Run the UpdateStorageConnector API with the gotten token information and connection string.  
-See the [Developer Edition REST API](https://developer.aitrios.sony-semicon.com/en/development-guides/reference/api-references/) for details on the API. 
+See the [Console REST API Specification](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/console-rest-api-specification/) for details on the API. 
 The following procedure is an example of using Postman.
 
 - Create a new PUT request in Postman

@@ -2,19 +2,19 @@
 
 ## このソフトウェアについて
 
-「**Vision and Sensing Application SDK**」 と 「**Cloud SDK**」 のサンプルです。ご利用にあたっては、下記の点に注意してください。
+「**Edge Application SDK**」 と 「**Cloud SDK**」 のサンプルです。ご利用にあたっては、下記の点に注意してください。
 
 - 本サンプルは、開発での使用を前提として公開しております。
-- このサンプルには、デバイスの正常な動作を妨げるエラーまたは欠陥が含まれている可能性があります。
+- このサンプルには、エッジデバイスの正常な動作を妨げるエラーまたは欠陥が含まれている可能性があります。
 
 ## コンテンツ <!-- omit in toc -->
 
 - [概要](#概要)
 - [前提条件](#前提条件)
 - [セットアップガイド](#セットアップガイド)
-  - [1. デバイスのセットアップ](#1-デバイスのセットアップ)
+  - [1. エッジデバイスのセットアップ](#1-エッジデバイスのセットアップ)
   - [2. AIモデルのセットアップとデプロイ](#2-aiモデルのセットアップとデプロイ)
-  - [3. 「**Vision and Sensing Application**」のセットアップとデプロイ](#3-Vision-and-Sensing-Applicationのセットアップとデプロイ)
+  - [3. 「**Edge Application**」のセットアップとデプロイ](#3-edge-applicationのセットアップとデプロイ)
   - [4. Azureリソースのデプロイ](#4-azureリソースのデプロイ)
 - [チュートリアル](#チュートリアル)
 - [制限事項](#制限事項)
@@ -30,33 +30,34 @@
 
 ## 前提条件
 
-このソフトウェアの実行には、下記のサービスおよびエッジAIデバイスが必要です。
+このソフトウェアの実行には、下記のサービスおよびエッジデバイスが必要です。
 
 - デベロッパーエディションBasicプランのご購入
-- エッジAIデバイスのご購入
+- エッジデバイスのご購入
 - Azureアカウントおよび、サブスクリプションのご購入
 
 ## セットアップガイド
 
 このソフトウェアを利用するためのセットアップ手順について説明します。
 
-### 1. デバイスのセットアップ
+AI
+### 1. エッジデバイスのセットアップ
 
-ご購入頂いたエッジAIデバイスの設定を行って下さい。
+ご購入頂いたエッジデバイスの設定を行って下さい。
 
-下記の手順の詳細を [「**デバイス設定ガイド**」](https://developer.aitrios.sony-semicon.com/documents/device-setup-guide) にてご確認ください。
+下記の手順の詳細を [「**エッジデバイス設定ガイド**」](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/device-setup-guide/) にてご確認ください。
 
-- デバイス証明書の取得
-- エッジAIデバイスの登録
-- ConsoleとエッジAIデバイスの接続
-- エッジAIデバイスのファームウェア更新
-- エッジAIデバイスの設置確認
+- エッジデバイス証明書の取得
+- エッジデバイスの登録
+- Consoleとエッジデバイスの接続
+- エッジデバイスのファームウェア更新
+- エッジデバイスの設置確認
 
 ### 2. AIモデルのセットアップとデプロイ
 
-侵入検知に利用するAIモデルを設定し、エッジAIデバイスにデプロイします。
+侵入検知に利用するAIモデルを設定し、エッジデバイスにデプロイします。
 
-下記の手順の詳細を [「**Consoleユーザーマニュアル**」](https://developer.aitrios.sony-semicon.com/documents/console-user-manual) にてご確認ください。
+下記の手順の詳細を [「**Consoleユーザーマニュアル**」](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/console-user-manual/) にてご確認ください。
 
 - Create model
 - Train model
@@ -65,9 +66,9 @@
 
 - [training_images.zip](./sample/training_images.zip)
 
-### 3. 「**Vision and Sensing Application**」のセットアップとデプロイ
+### 3. 「**Edge Application**」のセットアップとデプロイ
 
-侵入検知に利用する「**Vision and Sensing Application**」をビルドし、エッジAIデバイスにデプロイします。
+侵入検知に利用する「**Edge Application**」をビルドし、エッジデバイスにデプロイします。
 
 手順の詳細を [「**README**」](./sample/README_ja.md) にてご確認ください。
 
@@ -90,7 +91,7 @@ Azure PortalとARMテンプレートを使用して、Azureリソースをデプ
 
 ## サポート
 
-- [Contact us](https://developer.aitrios.sony-semicon.com/contact-us/)
+- [Contact us](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/contact-us/)
 
 ## 参照
 
@@ -98,7 +99,7 @@ Azure PortalとARMテンプレートを使用して、Azureリソースをデプ
 
 ## 商標
 
-- [「**Read This First**」](https://developer.aitrios.sony-semicon.com/documents/read-this-first)
+- [「**Read This First**」](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/read-this-first/)
 
 ## バージョニング
 
@@ -112,4 +113,4 @@ Azure PortalとARMテンプレートを使用して、Azureリソースをデプ
 
 ## セキュリティ
 
-CodeSpacesのご利用の前に、Githubのサイトポリシーをお読みいただき、利用条件をご理解の上でご利用ください。
+Codespacesのご利用の前に、GitHubのサイトポリシーをお読みいただき、利用条件をご理解の上でご利用ください。

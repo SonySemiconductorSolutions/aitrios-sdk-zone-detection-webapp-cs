@@ -27,9 +27,9 @@
 
 ### 「**ZoneDetection**」の構成
 
-Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRIOS**」(以下、「**Console**」)のAPIを利用してエッジAIデバイスの制御を行います。
+Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRIOS**」(以下、「**Console**」)のAPIを利用してエッジデバイスの制御を行います。
 
-エッジAIデバイスが撮影した画像と推論結果は、「**Console**」にアップロードされた後、「**ZoneDetection**」に通知されます。
+エッジデバイスが撮影した画像と推論結果は、「**Console**」にアップロードされた後、「**ZoneDetection**」に通知されます。
 
 ![ZoneDetectionの構成](Network_diagram.png)
 
@@ -59,7 +59,7 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
   Setup画面では、下記の折りたたみセクションごとに必要な設定を行います。
   | 折りたたみセクション | 使用用途 |
   | ---- | ---- |
-  | [**Step 1 : Capture Image**] | 「**Console**」に登録されているエッジAIデバイスに接続し、撮影エリアの画像を取得します。 |
+  | [**Step 1 : Capture Image**] | 「**Console**」に登録されているエッジデバイスに接続し、撮影エリアの画像を取得します。 |
   | [**Step 2 : Specify Zone**] | 撮影エリアに対して、侵入検知を行うエリアを設定します。 |
   | [**Step 3 : Test Detection**] | 検出で使用する各パラメータの閾値を設定します。</br>設定値をテストしながら調整することができます。 |
   | [**Option : Save Parameters**] | 設定したパラメータ情報をブラウザのCookieに保存します。 |
@@ -67,8 +67,8 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
 ### 2. 撮影エリアを取得する
 
 - 折りたたみセクションの[**Step 1 : Capture Image**]を選択する
-- [**Device ID**]のプルダウンから、利用するエッジAIデバイスのDevice IDを選択する
-- [**Model ID**]のプルダウンから、エッジAIデバイスにデプロイしたModel IDを選択する
+- [**Device ID**]のプルダウンから、利用するエッジデバイスのDevice IDを選択する
+- [**Model ID**]のプルダウンから、エッジデバイスにデプロイしたModel IDを選択する
 - [**Capture**]ボタンを押下して画像情報を取得する
 
   各表示パーツの機能は下記のとおりです。
@@ -130,7 +130,7 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
 
 > **Note**  
 > Telemetry/Events画面をご利用の前にご確認ください。  
-> 推論開始する際にエッジAIデバイスに接続されているCommand parameter fileが上書きされます。
+> 推論開始する際にエッジデバイスに接続されているCommand parameter fileが上書きされます。
 
 - 画面左上の[**Telemetry/Events**]タブを選択し、Telemetry/Events画面を表示する
   
