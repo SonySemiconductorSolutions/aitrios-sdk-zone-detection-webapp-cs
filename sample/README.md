@@ -1,30 +1,30 @@
-# Set up and deploy "**Vision and Sensing Application**"
+# Set up and deploy "**Edge Application**"
 
-"**Vision and Sensing Application**" processes the AI output into data that can be used for application development.</br>
-This section describes how to build a "**Vision and Sensing Application**" for zone detection and deploy it from "**Console for AITRIOS&trade;**" to edge AI device.
+"**Edge Application**" processes the AI output into data that can be used for application development.</br>
+This section describes how to build a "**Edge Application**" for zone detection and deploy it from "**Console for AITRIOS&trade;**" to Edge Device.
 
 ## Content <!-- omit in toc -->
 
 - [Prerequisite](#prerequisite)
-- [Build "**Vision and Sensing Application**"](#build-vision-and-sensing-application)
+- [Build "**Edge Application**"](#build-edge-application)
   - [1. Build Docker Image](#1-build-docker-image)
   - [2. Get .wasm file from container](#2-get-wasm-file-from-container)
-- [Register "**Vision and Sensing Application**" in "**Console for AITRIOS**"](#register-vision-and-sensing-application-in-console-for-aitrios)
-- [Deploy "**Vision and Sensing Application**" to edge AI device](#deploy-vision-and-sensing-application-to-edge-ai-device)
+- [Register "**Edge Application**" in "**Console for AITRIOS**"](#register-edge-application-in-console-for-aitrios)
+- [Deploy "**Edge Application**" to Edge Device](#deploy-edge-application-to-edge-ai-device)
 - [Restrictions](#restrictions)
 
 ## Prerequisite
 
-To build the "**Vision and Sensing Application**", you need an environment that runs Docker.
+To build the "**Edge Application**", you need an environment that runs Docker.
 
 See the [official documentation](https://docs.docker.com/get-docker/) to set up an environment that runs Docker, or 
-see the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/downloads#sdk-getting-started) to set up a development environment using Visual Studio Code and Docker.
+see the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/downloads#sdk-getting-started) to set up a development environment using Visual Studio Code and Docker.
 
-## Build "**Vision and Sensing Application**"
+## Build "**Edge Application**"
 
 ### 1. Build Docker Image
 
-Create a Docker image that will be the build environment for your "**Vision and Sensing Application**".
+Create a Docker image that will be the build environment for your "**Edge Application**".
 
 - Run the following command in terminal
 
@@ -34,7 +34,7 @@ Create a Docker image that will be the build environment for your "**Vision and 
 
 ### 2. Get .wasm file from container
 
-Follow the procedures to copy the "**Vision and Sensing Application**" .wasm file you built, **`vision_app_zonedetection.wasm`**, to the **`./`** directory.
+Follow the procedures to copy the "**Edge Application**" .wasm file you built, **`vision_app_zonedetection.wasm`**, to the **`./`** directory.
 
 - Run the following command in terminal
 
@@ -44,17 +44,17 @@ Follow the procedures to copy the "**Vision and Sensing Application**" .wasm fil
   docker rm -f vns_app
   ```
 
-## Register "**Vision and Sensing Application**" in "**Console for AITRIOS**"
+## Register "**Edge Application**" in "**Console for AITRIOS**"
 
-Register the "**Vision and Sensing Application**" .wasm file you created, **`vision_app_zonedetection.wasm`**, in the "**Console for AITRIOS**" and prepare it for deployment to edge AI device.</br> 
-See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/documents/console-user-manual).
+Register the "**Edge Application**" .wasm file you created, **`vision_app_zonedetection.wasm`**, in the "**Console for AITRIOS**" and prepare it for deployment to Edge Device.</br> 
+See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/console-user-manual/).
 
 - Registering an Application
 
-## Deploy "**Vision and Sensing Application**" to edge AI device
+## Deploy "**Edge Application**" to Edge Device
 
-Deploy the "**Vision and Sensing Application**" you registered to an edge AI device.</br>
-See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/documents/console-user-manual).
+Deploy the "**Edge Application**" you registered to an Edge Device.</br>
+See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/console-user-manual/).
 
 - Deploying an Application
 

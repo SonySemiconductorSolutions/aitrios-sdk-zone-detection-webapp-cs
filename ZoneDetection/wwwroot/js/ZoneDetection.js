@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Sony Semiconductor Solutions Corporation
+ * Copyright (c) 2023, 2024 Sony Semiconductor Solutions Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -729,37 +729,47 @@ async function telemetryEventsProcessMessage (signalRMsg, barChart, threshold, i
   // var funcName = `${arguments.callee.name}()`
   // console.debug(`=> ${funcName}`)
   try {
-    telemetryEventsGenerateImagePath(signalRMsg, threshold, iouThreshold)
     const message = JSON.parse(signalRMsg)
 
     if (message == null) {
       // no data, just return
       return
     }
-    // Apply device id filter.
+    // Apply Edge Device id filter.
     if (message.deviceId !== currentDeviceId) {
       return
     }
     const inference = JSON.parse(message.data)
+
+    const subDir = pendingImagePath.split('/')[3]
+    if (inference.T < subDir) {
+      console.log('Receives old inference result and terminates processing')
+      return
+    }
+    if (withImage) {
+      telemetryEventsGenerateImagePath(signalRMsg, threshold, iouThreshold)
+    }
+
     barChart.data.labels.push(message.eventTime)
 
     let pValue = 0
-    const updateCanvas = (pendingImagePath.length === 0)
-
     let canvasOverlay
     let ctxOverlay
-    if (updateCanvas === true) {
+    if (withImage === false) {
       // Inference in progress without image (inference results only)
       // Draw bounding box
       canvasOverlay = document.getElementById('zoneDetectionCanvasOverlay')
       ctxOverlay = canvasOverlay.getContext('2d')
       ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height)
+      const canvasImg = document.getElementById('zoneDetectionCanvas')
+      const canvasImgCtx = canvasImg.getContext('2d')
+      canvasImgCtx.clearRect(0, 0, canvasImg.width, canvasImg.height)
     }
 
     for (let i = 0; i < inference.inferenceResults.length; i++) {
       const inferenceResults = inference.inferenceResults
       // DrawingBoundingBox process in no-image mode
-      if (updateCanvas) {
+      if (withImage === false) {
         if (pplMode === 0 && inferenceResults[i].P >= threshold) {
           DrawBoundingBox(inferenceResults[i], canvasOverlay, threshold, 1, 1)
         } else if (inferenceResults[i].P >= threshold && inferenceResults[i].iou >= iouThreshold) {
@@ -789,8 +799,8 @@ async function telemetryEventsProcessMessage (signalRMsg, barChart, threshold, i
                 currentValue = parseInt(navbarNotificationSpan.innerHTML)
               }
               currentValue += 1
-              navbarNotificationSpan.innerHTML = currentValue.toString()
-              navbarAlertHeader.innerHTML = `${currentValue.toString()} alert`
+              navbarNotificationSpan.innerHTML = currentValue
+              navbarAlertHeader.innerHTML = `${currentValue} alert`
 
               navbarAlertSpan.innerHTML = `${dateNow.toLocaleString('en-US')}`
             }
@@ -1193,7 +1203,7 @@ function DrawZoneRect (canvasId) {
 }
 
 // A wrapper function to start Zone Detection
-async function StartZoneDetection (resultElementId, withImage) {
+async function StartZoneDetection (resultElementId) {
   const funcName = `${arguments.callee.name}()`
   console.debug('=>', funcName)
   const resultElement = document.getElementById(resultElementId)
@@ -1237,7 +1247,7 @@ async function StartZoneDetection (resultElementId, withImage) {
       input_width: 320,
       input_height: 320
     }
-    if (withImage === true) {
+    if (withImage) {
       // Image & Inference results
       const Mode = 1 // Image & Inference results
       await ManagementCommandParameter(currentDeviceId, COMMAND_PARAM_FILE_NAME, null, 'StartUploadInferenceData',
@@ -1283,6 +1293,8 @@ async function StartZoneDetection (resultElementId, withImage) {
           deviceId: currentDeviceId
         }
       }).done(function (response) {
+        const ts = getTimeStamp()
+        pendingImagePath = `deviceId/meta/subDir/${ts}`
         setResultElement(resultElement, 'Processing Telemetry')
         // draw bounding box for zone detection
         DrawZoneRect('zoneDetectionCanvasZoneOverlay')
@@ -1441,8 +1453,8 @@ async function SaveParameter () {
     null, null, PPLParameter, modelId)
 }
 
-// Sets Device List and Model List selected items.
-// Called if Device ID and Model ID are retrieved from cookie
+// Sets Edge Device List and Model List selected items.
+// Called if Edge Device ID and Model ID are retrieved from cookie
 async function SetDeviceLists (deviceId) {
   const funcName = `${arguments.callee.name}()`
   console.debug(`=> ${funcName}`)
@@ -1547,4 +1559,16 @@ function checkTokenExp (token) {
   } else {
     return false
   }
+}
+
+function getTimeStamp () {
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(now.getUTCDate()).padStart(2, '0')
+  const hours = String(now.getUTCHours()).padStart(2, '0')
+  const minutes = String(now.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(now.getUTCSeconds()).padStart(2, '0')
+  const millisec = String(now.getUTCMilliseconds()).padStart(3, '0')
+  return `${year}${month}${day}${hours}${minutes}${seconds}${millisec}`
 }

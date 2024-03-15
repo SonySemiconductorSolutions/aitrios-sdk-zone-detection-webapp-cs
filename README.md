@@ -2,10 +2,10 @@
 
 ## About this Software
 
-This is a sample of "**Vision and Sensing Application SDK**" and "**Cloud SDK**". Please note the following when using it：
+This is a sample of "**Edge Application SDK**" and "**Cloud SDK**". Please note the following when using it：
 
 - This sample is released with the assumption it will be used for development.
-- This sample may contain errors or defects that obstruct regular operation of the device.
+- This sample may contain errors or defects that obstruct regular operation of the Edge Device.
 
 ## Content <!-- omit in toc -->
 
@@ -14,7 +14,7 @@ This is a sample of "**Vision and Sensing Application SDK**" and "**Cloud SDK**"
 - [Setup Guide](#setup-guide)
   - [1. Set up your device](#1-set-up-your-device)
   - [2. Set up and deploy AI model](#2-set-up-and-deploy-ai-model)
-  - [3. Set up and deploy "**Vision and Sensing Application**"](#3-set-up-and-deploy-vision-and-sensing-application)
+  - [3. Set up and deploy "**Edge Application**"](#3-set-up-and-deploy-edge-application)
   - [4. Deploy Azure resources](#4-deploy-azure-resources)
 - [Tutorials](#tutorials)
 - [Restrictions](#restrictions)
@@ -30,10 +30,10 @@ This software provides an environment to build a zone detection system using the
 
 ## Prerequisite
 
-The following service and edge AI device are required to run this software:
+The following service and Edge Device are required to run this software:
 
-- Buy Developer Edition Basic Plan
-- Buy edge AI device
+- Buy Console​ Developer Edition​ Plan
+- Buy Edge Device
 - Buy Azure account and subscription
 
 ## Setup Guide
@@ -42,21 +42,21 @@ Here are the setup procedures for using this software.
 
 ### 1. Set up your device
 
-Configure the edge AI device you purchased.
+Configure the Edge Device you purchased.
 
-See the ["**Device Setup Guide**"](https://developer.aitrios.sony-semicon.com/en/documents/device-setup-guide) for details on the following procedures.
+See the ["**Device Setup Guide**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/device-setup-guide/) for details on the following procedures.
 
-- Obtaining device certificates 
-- Register the edge AI device 
-- Connecting the edge AI device to Console 
-- Updating the edge AI device firmware 
-- Installing the edge AI device
+- Obtaining Edge Device certificates 
+- Register the Edge Device 
+- Connecting the Edge Device to Console 
+- Updating the Edge Device firmware 
+- Installing the Edge Device
 
 ### 2. Set up and deploy AI model
 
-Set up an AI model to use for zone detection and deploy it to edge AI device.
+Set up an AI model to use for zone detection and deploy it to Edge Device.
 
-See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/documents/console-user-manual) for details on the following procedures.
+See the ["**Console User Manual**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/console-user-manual/) for details on the following procedures.
 
 - Create model
 - Train model
@@ -65,9 +65,9 @@ The images for training are available by downloading the following ZIP file.
 
 - [training_images.zip](./sample/training_images.zip)
 
-### 3. Set up and deploy "**Vision and Sensing Application**"
+### 3. Set up and deploy "**Edge Application**"
 
-Build a "**Vision and Sensing Application**" for zone detection and deploy it to edge AI device.
+Build a "**Edge Application**" for zone detection and deploy it to Edge Device.
 
 See the ["**README**"](./sample/README.md) for details on procedures.
 
@@ -90,7 +90,7 @@ See the ["**README**"](./ZoneDetection/README.md) for an overview of the applica
 
 ## Get support
 
-- [Contact us](https://developer.aitrios.sony-semicon.com/en/contact-us-en)
+- [Contact us](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/contact-us/)
 
 ## See also
 
@@ -98,7 +98,7 @@ See the ["**README**"](./ZoneDetection/README.md) for an overview of the applica
 
 ## Trademark
 
-- ["**Read This First**"](https://developer.aitrios.sony-semicon.com/en/documents/read-this-first)
+- ["**Read This First**"](https://developer.aitrios.sony-semicon.com/en/edge-ai-sensing/documents/read-this-first/)
 
 ## Versioning
 

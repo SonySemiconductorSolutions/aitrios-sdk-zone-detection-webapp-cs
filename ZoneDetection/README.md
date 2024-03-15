@@ -27,9 +27,9 @@ It provides the following functions on the UI of this application:
 
 ### "**ZoneDetection**" configurations
 
-Deployed on Azure, "**ZoneDetection**" uses API of "**Console for AITRIOS**", hereafter referred to as "**Console**", to control edge AI device. 
+Deployed on Azure, "**ZoneDetection**" uses API of "**Console for AITRIOS**", hereafter referred to as "**Console**", to control Edge Device. 
 
-Images and inference results gotten by edge AI device are uploaded to the "**Console**" and then notified to "**ZoneDetection**". 
+Images and inference results gotten by Edge Device are uploaded to the "**Console**" and then notified to "**ZoneDetection**". 
 
 ![ZoneDetection configurations](Network_diagram.png)
 
@@ -59,7 +59,7 @@ You can switch between screens by selecting the tabs at the top left of the scre
   In the Setup screen, makes the necessary settings for each folding section in the following.
   | Folding section | Usage |
   | ---- | ---- |
-  | [**Step 1 : Capture Image**] | Connect to a edge AI device enrolled in the "**Console**" and get images of the imaging area. |
+  | [**Step 1 : Capture Image**] | Connect to a Edge Device enrolled in the "**Console**" and get images of the imaging area. |
   | [**Step 2 : Specify Zone**] | Set an area for zone detection for the imaging area. |
   | [**Step 3 : Test Detection**] | Set a threshold for each parameter used in detection. </br> You can test and adjust the settings. |
   | [**Option : Save Parameters**] | Save the parameter information you set in a browser cookie. |
@@ -67,14 +67,14 @@ You can switch between screens by selecting the tabs at the top left of the scre
 ### 2. Get imaging area
 
 - Select the [**Step 1 : Capture Image**] in the folding section 
-- Select the Device ID of the edge AI device you want to use from the [**Device ID**] drop-down list
-- Select the Model ID you deployed to your edge AI device from the [**Model ID**] drop-down list 
+- Select the Device ID of the Edge Device you want to use from the [**Device ID**] drop-down list
+- Select the Model ID you deployed to your Edge Device from the [**Model ID**] drop-down list 
 - Press the [**Capture**] button to capture image information
 
   The function of each display part is as follows:
   | Display part | Function |
   | ---- | ---- |
-  | [**Device ID**] | Selects a Device ID of the edge AI device enrolled in the "**Console**". |
+  | [**Device ID**] | Selects a Device ID of the Edge Device enrolled in the "**Console**". |
   | [**Model ID**] | Selects a Model ID of the Device ID registered in the "**Console**". |
   | [**Capture**] button | Gets image information associated with the selected Device ID/Model ID. |
 
@@ -130,7 +130,7 @@ You can switch between screens by selecting the tabs at the top left of the scre
 
 > **Note**  
 > Check before using Telemetry/Events screen. 
-> Command parameter file connected to the edge AI device is overwritten when inference is started.
+> Command parameter file connected to the Edge Device is overwritten when inference is started.
 
 - Select the [**Telemetry/Events**] tab at the bottom left of the screen to display the Telemetry/Events screen
   
@@ -149,7 +149,7 @@ You can switch between screens by selecting the tabs at the top left of the scre
   The function of each display part is as follows:
   | Display part  | Function  |
   | ---- | ---- |
-  | [**Device ID**] | Selects a Device ID of the edge AI device enrolled in the "**Console**". |
+  | [**Device ID**] | Selects a Device ID of the Edge Device enrolled in the "**Console**". |
   | [**Model ID**] | Selects a Model ID of the Device ID registered in the "**Console**". |
   | [**Detection Threshold**] | Sets a threshold for object detection accuracy. </br>ex.) If the detection accuracy is set to 80%, anything with a detection accuracy of 80% or higher will be detected as an object. | 
   | [**IoU Threshold**] | Sets the overlap rate (IoU) for determining zone detection. </br>ex.) If the overlap rate (IoU) is set to 20%, an zone detection is determined if the overlap rate between the detected object and the area for zone detection is 20% or more. | 

@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright 2023 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2023, 2024 Sony Semiconductor Solutions Corp. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,31 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <vector>
+#include <pthread.h>
 
 #include "vision_app_public.h"
 #include "analyzer_zonedetection.h"
 #include "zonedetection_generated.h"
 
-#include <map> // [SARD] included
+#include <map>
+
 /* -------------------------------------------------------- */
 /* define                                                   */
 /* -------------------------------------------------------- */
 #define PPL_DNN_OUTPUT_TENSOR_SIZE(dnnOutputDetections)  ((dnnOutputDetections * 4) + dnnOutputDetections + dnnOutputDetections + 1)    // bbox(dnnOutputDetections*4)+class(dnnOutputDetections)+scores(dnnOutputDetections)+numOfDetections(1) 
 
+extern pthread_mutex_t g_libc_mutex;
+
 /* -------------------------------------------------------- */
 /* macro define                                             */
 /* -------------------------------------------------------- */
-#define PPL_ERR_PRINTF(fmt, ...) fprintf(stderr, "E [VisionAPP] ");fprintf(stderr, fmt, ##__VA_ARGS__);fprintf(stderr, "\n")
-#define PPL_WARN_PRINTF(fmt, ...) fprintf(stderr, "W [VisionAPP] ");fprintf(stderr, fmt, ##__VA_ARGS__);fprintf(stderr, "\n")
-#define PPL_INFO_PRINTF(fmt, ...) fprintf(stdout, "I [VisionAPP] ");fprintf(stdout, fmt, ##__VA_ARGS__);fprintf(stdout, "\n")
-#define PPL_DBG_PRINTF(fmt, ...) printf( "D [VisionAPP] "); printf( fmt, ##__VA_ARGS__); printf( "\n")
-#define PPL_VER_PRINTF(fmt, ...) printf( "V [VisionAPP] "); printf( fmt, ##__VA_ARGS__); printf( "\n")
+#define PPL_ERR_PRINTF(fmt, ...) MUTEX_LOCK();fprintf(stderr, "E [VisionAPP] " fmt "\n", ##__VA_ARGS__);MUTEX_UNLOCK();
+#define PPL_WARN_PRINTF(fmt, ...) MUTEX_LOCK();fprintf(stderr, "W [VisionAPP] " fmt "\n", ##__VA_ARGS__);MUTEX_UNLOCK();
+#define PPL_INFO_PRINTF(fmt, ...) MUTEX_LOCK();fprintf(stdout, "I [VisionAPP] " fmt "\n", ##__VA_ARGS__);MUTEX_UNLOCK();
+#define PPL_DBG_PRINTF(fmt, ...) MUTEX_LOCK();printf( "D [VisionAPP] " fmt "\n", ##__VA_ARGS__);MUTEX_UNLOCK();
+#define PPL_VER_PRINTF(fmt, ...) MUTEX_LOCK();printf( "V [VisionAPP] " fmt "\n", ##__VA_ARGS__);MUTEX_UNLOCK();
+#define MUTEX_LOCK() pthread_mutex_lock(&g_libc_mutex);
+#define MUTEX_UNLOCK() pthread_mutex_unlock(&g_libc_mutex);
 
 /* -------------------------------------------------------- */
 /* structure                                                */
@@ -128,36 +134,68 @@ EPPL_RESULT_CODE PPL_ObjectDetectionSsdAnalyze(float *p_data, uint32_t in_size, 
 //======================PPL_Custom_Analyze()==========================//
     PPL_Custom_Analyze(&output_objectdetection_data, &output_analyze_data, &custom_param);
 
-    /* Serialize Data to FLatbuffers */ 
+    /* serialize output data to flatbuffer */
+    MUTEX_LOCK();
     flatbuffers::FlatBufferBuilder* builder = new flatbuffers::FlatBufferBuilder();
+    MUTEX_UNLOCK();
+
     createCustomOutputFlatbuffer(builder,&output_analyze_data);
 
+    MUTEX_LOCK();
     uint8_t* buf_ptr = builder->GetBufferPointer();
+    MUTEX_UNLOCK();
+
     if (buf_ptr == NULL) {
         PPL_ERR_PRINTF("Error could not create Flatbuffer");
+        MUTEX_LOCK();
         builder->Clear();
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
         delete(builder);
+        MUTEX_UNLOCK();
+
         return E_PPL_OTHER;
     }
 
+    MUTEX_LOCK();
     uint32_t buf_size = builder->GetSize();
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     p_out_param = (uint8_t *)SessMalloc(buf_size);
+    MUTEX_UNLOCK();
+
     if (p_out_param == NULL) {
         PPL_ERR_PRINTF("malloc failed for creating flatbuffer, malloc size=%d", buf_size);
+        MUTEX_LOCK();
         builder->Clear();
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
         delete(builder);
+        MUTEX_UNLOCK();
+
         return E_PPL_E_MEMORY_ERROR;
     }
     PPL_DBG_PRINTF("p_out_param = %p", p_out_param);
 
     /* Copy Data */
+    MUTEX_LOCK();
     memcpy(p_out_param, buf_ptr, buf_size);
+    MUTEX_UNLOCK();
+    
     *pp_out_buf = p_out_param;
     *p_out_size = buf_size;
 
     //Clean up
+    MUTEX_LOCK();
     builder->Clear();
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     delete(builder);
+    MUTEX_UNLOCK();
 
     return E_PPL_OK;
 }
@@ -173,14 +211,41 @@ EPPL_RESULT_CODE json_parse(JSON_Value *root_value, PPL_CustomParam *p_custom_pa
     const char* ppl_id_version = PPL_ID_VERSION;
 
     PPL_INFO_PRINTF("PPL_Initialize: <json_parse>");
+    int ret;
 
-    if (json_object_has_value(json_object(root_value),"header")) {
-        if (json_object_has_value_of_type(json_object(root_value),"header",JSONObject)) {
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"header");
+    MUTEX_UNLOCK();
+
+    if (ret) {
+
+        MUTEX_LOCK();
+        ret = json_object_has_value_of_type(json_object(root_value),"header",JSONObject);
+        MUTEX_UNLOCK();
+
+        if (ret) {
+    
+            MUTEX_LOCK();
             JSON_Object *header = json_object_get_object(json_object(root_value), "header");
-            if (json_object_has_value(header,"id")) {
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(header,"id");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
                 p = json_object_get_string(header, "id");
-                if (p != NULL) { 
-                    if (strncmp(ppl_id_version, p, 2)== 0) {
+                MUTEX_UNLOCK();
+
+                if (p != NULL) {
+
+                    MUTEX_LOCK();
+                    ret = strncmp(ppl_id_version, p, 2);
+                    MUTEX_UNLOCK();
+
+                    if (ret == 0) {
                         PPL_DBG_PRINTF("[PPL_PUBLIC] header_id = %s",p);
                     } else {
                         PPL_DBG_PRINTF("[PPL_PUBLIC] header_id = %s",p);
@@ -195,10 +260,22 @@ EPPL_RESULT_CODE json_parse(JSON_Value *root_value, PPL_CustomParam *p_custom_pa
                 return E_PPL_INVALID_PARAM;
             }
 
-            if (json_object_has_value(header,"version")) {
+            MUTEX_LOCK();
+            ret = json_object_has_value(header,"version");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
                 p = json_object_get_string(header, "version");
+                MUTEX_UNLOCK();
+
                 if (p != NULL) {
-                    if (strncmp(&ppl_id_version[3], p, 8) == 0) {
+                    MUTEX_LOCK();
+                    ret = strncmp(&ppl_id_version[3], p, 8);
+                    MUTEX_UNLOCK();
+
+                    if (ret == 0) {
                         PPL_DBG_PRINTF("[PPL_PUBLIC] header_version p = %s ppl_id_version=%s",p,&ppl_id_version[3]);
                     } else {
                         PPL_DBG_PRINTF("[PPL_PUBLIC] header_version = %s",p);
@@ -221,118 +298,237 @@ EPPL_RESULT_CODE json_parse(JSON_Value *root_value, PPL_CustomParam *p_custom_pa
 /* private function                                         */
 /* -------------------------------------------------------- */
 static EPPL_RESULT_CODE PPL_CustomParamInit(JSON_Value *root_value, PPL_CustomParam *p_custom_param) {
-    PPL_INFO_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit ");
-    if (json_object_has_value(json_object(root_value),"dnn_output_detections")) {
+    PPL_INFO_PRINTF("[ROI ANALYZE] PPL_CustomParamInit ");
+    int ret;
+
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"dnn_output_detections");
+    MUTEX_UNLOCK();
+
+    if (ret) {
+
+        MUTEX_LOCK();
         uint16_t dnn_output_detections = json_object_get_number(json_object(root_value), "dnn_output_detections");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit dnn_output_detections: %d", dnn_output_detections);
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit dnn_output_detections: %d", dnn_output_detections);
         p_custom_param->dnnOutputDetections = dnn_output_detections;
     } else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have parameter \"dnn_output_detections\"");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have parameter \"dnn_output_detections\"");
         return E_PPL_INVALID_PARAM;
     }
 
-    if (json_object_has_value(json_object(root_value),"max_detections")) {
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"max_detections");
+    MUTEX_UNLOCK();
+
+    if (ret) {
+
+        MUTEX_LOCK();
         uint16_t maxDetections = (int)json_object_get_number(json_object(root_value), "max_detections");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit max_detections: %d", maxDetections);
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit max_detections: %d", maxDetections);
         if (maxDetections > p_custom_param->dnnOutputDetections) {
-            PPL_WARN_PRINTF("[SARD][ROI ANALYZE] max_detections > max number of classes, set to max number of classes");
+            PPL_WARN_PRINTF("[ROI ANALYZE] max_detections > max number of classes, set to max number of classes");
             p_custom_param->maxDetections = p_custom_param->dnnOutputDetections;
         } else {
             p_custom_param->maxDetections = maxDetections;
         }
     } else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have max_detections");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have max_detections");
         return E_PPL_INVALID_PARAM;
     }
 
-    if (json_object_has_value(json_object(root_value),"mode")){
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"mode");
+    MUTEX_UNLOCK();
+
+    if (ret){
+        MUTEX_LOCK();
         uint16_t mode = (int)json_object_get_number(json_object(root_value), "mode");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit Mode: %d", mode);
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit Mode: %d", mode);
         p_custom_param->mode = mode;
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit p_custom_param->mode: %d", p_custom_param->mode);
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit p_custom_param->mode: %d", p_custom_param->mode);
     } else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have mode");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have mode");
         return E_PPL_INVALID_PARAM;        
     }
 
-    if (json_object_has_value(json_object(root_value),"zone")){
-        if (json_object_has_value_of_type(json_object(root_value),"zone",JSONObject)) {  
-			JSON_Object *zone = json_object_get_object(json_object(root_value), "zone");		
-			if (json_object_has_value(zone,"top_left_x")) {
-			p_custom_param->Zone.top_left_x = (int)json_object_get_number(zone, "top_left_x");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit top_left_x: %d", p_custom_param->Zone.top_left_x);
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"zone");
+    MUTEX_UNLOCK();
+
+    if (ret){
+
+        MUTEX_LOCK();
+        ret = json_object_has_value_of_type(json_object(root_value),"zone",JSONObject);
+        MUTEX_UNLOCK();
+
+        if (ret) {
+
+			MUTEX_LOCK();
+            JSON_Object *zone = json_object_get_object(json_object(root_value), "zone");
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(zone,"top_left_x");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->Zone.top_left_x = (int)json_object_get_number(zone, "top_left_x");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit top_left_x: %d", p_custom_param->Zone.top_left_x);
             }else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have top_left_x");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have top_left_x");
+                return E_PPL_INVALID_PARAM;
             }
-            if (json_object_has_value(zone,"top_left_y")) {
-			p_custom_param->Zone.top_left_y = (int)json_object_get_number(zone, "top_left_y");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit top_left_y: %d", p_custom_param->Zone.top_left_y);
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(zone,"top_left_y");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->Zone.top_left_y = (int)json_object_get_number(zone, "top_left_y");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit top_left_y: %d", p_custom_param->Zone.top_left_y);
             }else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have top_left_y");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have top_left_y");
+                return E_PPL_INVALID_PARAM;
             }
-            if (json_object_has_value(zone,"bottom_right_x")) {
-			p_custom_param->Zone.bottom_right_x = (int)json_object_get_number(zone, "bottom_right_x");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit bottom_right_x: %d", p_custom_param->Zone.bottom_right_x);
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(zone,"bottom_right_x");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->Zone.bottom_right_x = (int)json_object_get_number(zone, "bottom_right_x");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit bottom_right_x: %d", p_custom_param->Zone.bottom_right_x);
             }else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have bottom_right_x");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have bottom_right_x");
+                return E_PPL_INVALID_PARAM;
             }
-            if (json_object_has_value(zone,"bottom_right_y")) {
-			p_custom_param->Zone.bottom_right_y = (int)json_object_get_number(zone, "bottom_right_y");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit bottom_right_y: %d", p_custom_param->Zone.bottom_right_y);
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(zone,"bottom_right_y");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->Zone.bottom_right_y = (int)json_object_get_number(zone, "bottom_right_y");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit bottom_right_y: %d", p_custom_param->Zone.bottom_right_y);
             }else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have bottom_right_y");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have bottom_right_y");
+                return E_PPL_INVALID_PARAM;
             }
         } 
     }else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have zone");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have zone");
         return E_PPL_INVALID_PARAM;         
     }
 
-    if (json_object_has_value(json_object(root_value),"threshold")){
-        if (json_object_has_value_of_type(json_object(root_value),"threshold",JSONObject)) {  
-			JSON_Object *threshold = json_object_get_object(json_object(root_value), "threshold");		
-			if (json_object_has_value(threshold,"iou")) {
-			p_custom_param->iou = (float)json_object_get_number(threshold, "iou");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit iou: %f", p_custom_param->iou);
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"threshold");
+    MUTEX_UNLOCK();
+
+    if (ret){
+
+        MUTEX_LOCK();
+        ret = json_object_has_value_of_type(json_object(root_value),"threshold",JSONObject);
+        MUTEX_UNLOCK();
+
+        if (ret) {
+
+            MUTEX_LOCK();
+            JSON_Object *threshold = json_object_get_object(json_object(root_value), "threshold");
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
+            ret = ret = json_object_has_value(threshold,"iou");
+            MUTEX_UNLOCK();
+
+			if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->iou = (float)json_object_get_number(threshold, "iou");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit iou: %f", p_custom_param->iou);
             }
             else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have iou");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have iou");
+                return E_PPL_INVALID_PARAM;
             }
-            if (json_object_has_value(threshold,"score")) {
-			p_custom_param->score = (float)json_object_get_number(threshold, "score");
-			PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit score: %f", p_custom_param->score);
+
+            MUTEX_LOCK();
+            ret = json_object_has_value(threshold,"score");
+            MUTEX_UNLOCK();
+
+            if (ret) {
+
+                MUTEX_LOCK();
+                p_custom_param->score = (float)json_object_get_number(threshold, "score");
+                MUTEX_UNLOCK();
+
+                PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit score: %f", p_custom_param->score);
             }
             else {
-                PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have score");
-                return E_PPL_INVALID_PARAM;             
+                PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have score");
+                return E_PPL_INVALID_PARAM;
             }
         }
     }else
     {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have threshold");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have threshold");
         return E_PPL_INVALID_PARAM;         
     }
 
-    if (json_object_has_value(json_object(root_value),"input_width")) {
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"input_width");
+    MUTEX_UNLOCK();
+
+    if (ret) {
+
+        MUTEX_LOCK();
         uint16_t input_width = json_object_get_number(json_object(root_value), "input_width");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit input_width: %d", input_width);
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit input_width: %d", input_width);
         p_custom_param->inputWidth = input_width;
     } else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have input_width");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have input_width");
         return E_PPL_INVALID_PARAM;
     }
 
-    if (json_object_has_value(json_object(root_value),"input_height")) {
+    MUTEX_LOCK();
+    ret = json_object_has_value(json_object(root_value),"input_height");
+    MUTEX_UNLOCK();
+
+    if (ret) {
+
+        MUTEX_LOCK();
         uint16_t input_height = json_object_get_number(json_object(root_value), "input_height");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit input_height: %d", input_height);
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("[ROI ANALYZE] PPL_CustomParamInit input_height: %d", input_height);
         p_custom_param->inputHeight = input_height;
     } else {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] PPL_CustomParamInit: json file does not have \"input_height\"");
+        PPL_ERR_PRINTF("[ROI ANALYZE] PPL_CustomParamInit: json file does not have \"input_height\"");
         return E_PPL_INVALID_PARAM;
     }
 
@@ -365,7 +561,11 @@ static int createObjectDetectionSsdData(float *data_body, uint32_t detect_num, O
         bbox.x_min = out_data[count + i + (1 * totalDetections)];
         bbox.y_max = out_data[count + i + (2 * totalDetections)];
         bbox.x_max = out_data[count + i + (3 * totalDetections)];
+        
+        MUTEX_LOCK();
         v_bbox.push_back(bbox);
+        MUTEX_UNLOCK();
+
     }
     count += (totalDetections * 4);
 
@@ -377,7 +577,11 @@ static int createObjectDetectionSsdData(float *data_body, uint32_t detect_num, O
         }
         float class_index;
         class_index = out_data[count];
+
+        MUTEX_LOCK();
         v_classes.push_back(class_index);
+        MUTEX_UNLOCK();
+
         count++;
     }
 
@@ -389,7 +593,10 @@ static int createObjectDetectionSsdData(float *data_body, uint32_t detect_num, O
         }
         float score;
         score = out_data[count];
+
+        MUTEX_LOCK();
         v_scores.push_back(score);
+        MUTEX_UNLOCK();
         count++;
     }
 
@@ -402,14 +609,23 @@ static int createObjectDetectionSsdData(float *data_body, uint32_t detect_num, O
     uint8_t numOfDetections = (uint8_t) out_data[count];
 
     if (numOfDetections > totalDetections) {
-         PPL_WARN_PRINTF("Unexpected value for numOfDetections: %d, setting it to %d",numOfDetections,totalDetections);
-         numOfDetections = totalDetections;
+        PPL_WARN_PRINTF("Unexpected value for numOfDetections: %d, setting it to %d",numOfDetections,totalDetections);
+        numOfDetections = totalDetections;
     }
 
     objectdetection_output->numOfDetections = numOfDetections;
+    
+    MUTEX_LOCK();
     objectdetection_output->bboxes = v_bbox;
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     objectdetection_output->scores = v_scores;
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     objectdetection_output->classes = v_classes;
+    MUTEX_UNLOCK();
 
     return 0;
 }
@@ -433,66 +649,148 @@ static void analyzeObjectDetectionSsdOutput(ObjectDetectionSsdOutputTensor out_t
 
         /* Extract scores */
         float score;
+
+        MUTEX_LOCK();
         score = out_tensor.scores[i];
-        
+        MUTEX_UNLOCK();
+
         /* Filter Detections */
         if (score < custom_param.score) { // filter object based on object confidence score threshold
             continue;
         } else {
+
+            MUTEX_LOCK();
             v_scores.push_back(score);
+            MUTEX_UNLOCK();
 
             /* Extract bounding box co-ordinates */
             PPL_Bbox bbox;
+
+            MUTEX_LOCK();
             bbox.m_xmin = (uint16_t)(round((out_tensor.bboxes[i].x_min) * (custom_param.inputWidth - 1)));
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             bbox.m_ymin = (uint16_t)(round((out_tensor.bboxes[i].y_min) * (custom_param.inputHeight  - 1)));
+            MUTEX_UNLOCK();
+            
+            MUTEX_LOCK();
             bbox.m_xmax = (uint16_t)(round((out_tensor.bboxes[i].x_max) * (custom_param.inputWidth  - 1)));
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             bbox.m_ymax = (uint16_t)(round((out_tensor.bboxes[i].y_max) * (custom_param.inputHeight - 1)));
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             v_bbox.push_back(bbox);
+            MUTEX_UNLOCK();
 
            /* Extract classes */
             uint8_t class_index;
+
+            MUTEX_LOCK();
             class_index = (uint8_t)out_tensor.classes[i];
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             v_classes.push_back(class_index);
+            MUTEX_UNLOCK();
 
             detections_above_threshold++;
         }
     }
 
     objectdetection_data.numOfDetections = detections_above_threshold;
+
+    MUTEX_LOCK();
     objectdetection_data.v_bbox = v_bbox;
+    MUTEX_UNLOCK();
+    
+    MUTEX_LOCK();
     objectdetection_data.v_scores = v_scores;
+    MUTEX_UNLOCK();
+    
+    MUTEX_LOCK();
     objectdetection_data.v_classes = v_classes;
+    MUTEX_UNLOCK();
     //objectdetection_data = getActualDetections(objectdetection_data);
 
     if (objectdetection_data.numOfDetections > custom_param.maxDetections) {
         objectdetection_data.numOfDetections = custom_param.maxDetections;
+
+        MUTEX_LOCK();
         objectdetection_data.v_bbox.resize(custom_param.maxDetections);
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
         objectdetection_data.v_classes.resize(custom_param.maxDetections);
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
         objectdetection_data.v_scores.resize(custom_param.maxDetections);
+        MUTEX_UNLOCK();
+
     }
 
     output_objectdetection_data->numOfDetections = objectdetection_data.numOfDetections;
+
+    MUTEX_LOCK();
     output_objectdetection_data->v_bbox = objectdetection_data.v_bbox;
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     output_objectdetection_data->v_scores = objectdetection_data.v_scores;
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     output_objectdetection_data->v_classes = objectdetection_data.v_classes;
+    MUTEX_UNLOCK();
 
     PPL_DBG_PRINTF("number of detections = %d", objectdetection_data.numOfDetections);
     num_of_detections = objectdetection_data.numOfDetections;
     for (int i = 0; i < num_of_detections; i++) {
+
+        MUTEX_LOCK();
+        uint16_t xmin = objectdetection_data.v_bbox[i].m_xmin;
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint16_t ymin = objectdetection_data.v_bbox[i].m_ymin;
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint16_t xmax = objectdetection_data.v_bbox[i].m_xmax;
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint16_t ymax = objectdetection_data.v_bbox[i].m_ymax;
+        MUTEX_UNLOCK();
+
         PPL_DBG_PRINTF(
             "v_bbox[%d] :[x_min,y_min,x_max,y_max] = [%d,%d,%d,%d]",
             i,
-            objectdetection_data.v_bbox[i].m_xmin,
-            objectdetection_data.v_bbox[i].m_ymin,
-            objectdetection_data.v_bbox[i].m_xmax,
-            objectdetection_data.v_bbox[i].m_ymax
+            xmin,
+            ymin,
+            xmax,
+            ymax
         );
     }
     for (int i = 0; i < num_of_detections; i++) {
-        PPL_DBG_PRINTF("scores[%d] = %f", i, objectdetection_data.v_scores[i]);
+
+        MUTEX_LOCK();
+        float score = objectdetection_data.v_scores[i];
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("scores[%d] = %f", i, score);
     }
     for (int i = 0; i < num_of_detections; i++) {
-        PPL_DBG_PRINTF("class_indices[%d] = %d", i, objectdetection_data.v_classes[i]);
+
+        MUTEX_LOCK();
+        uint8_t class_indice = objectdetection_data.v_classes[i];
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("class_indices[%d] = %d", i, class_indice);
     }
 
     return;
@@ -500,7 +798,9 @@ static void analyzeObjectDetectionSsdOutput(ObjectDetectionSsdOutputTensor out_t
 
 int diff_magnitude(int a, int b)
 {
-    return (MAX(a,b) - MIN(a,b));
+    int max = MAX(a,b);
+    int min = MIN(a,b);
+    return (max - min);
 }
 
 /**
@@ -515,19 +815,48 @@ int diff_magnitude(int a, int b)
  */
 uint16_t object_inside_zone(std::vector<PPL_Bbox>& out_box, int i, float *out_iou/*std::vector<float>& out_iou*/, PPL_CustomParam *p_custom_param)
 {
+    MUTEX_LOCK();
     int x5 = MAX(p_custom_param->Zone.top_left_x, out_box[i].m_xmin);
+    MUTEX_UNLOCK();
+    
+    MUTEX_LOCK();
     int y5 = MAX(p_custom_param->Zone.top_left_y, out_box[i].m_ymin);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     int x6 = MIN(p_custom_param->Zone.bottom_right_x, out_box[i].m_xmax);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     int y6 = MIN(p_custom_param->Zone.bottom_right_y, out_box[i].m_ymax);
+    MUTEX_UNLOCK();
     float overlap_area = 0, object_area = 0;
 
     if((x5 > x6) || (y5 > y6))
     {
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE]: object is outside zone");
+        PPL_DBG_PRINTF("[ROI ANALYZE]: object is outside zone");
         return 0;
     }
-    overlap_area = (diff_magnitude(x5 ,x6))*(diff_magnitude(y5 , y6));
-    object_area = (diff_magnitude(out_box[i].m_xmin, out_box[i].m_xmax))*(diff_magnitude(out_box[i].m_ymax , out_box[i].m_ymin));
+    int x;
+    int y;
+    MUTEX_LOCK();
+    x = diff_magnitude(x5 ,x6);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
+    y = diff_magnitude(y5 , y6);
+    MUTEX_UNLOCK();
+
+    overlap_area = x*y;
+
+    MUTEX_LOCK();
+    x = diff_magnitude(out_box[i].m_xmin, out_box[i].m_xmax);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
+    y = diff_magnitude(out_box[i].m_ymax , out_box[i].m_ymin);
+    MUTEX_UNLOCK();
+    object_area = x*y;
     
     *(out_iou + i) = overlap_area/object_area; // x% of object in Zone area float value
     
@@ -552,25 +881,33 @@ static EPPL_RESULT_CODE PPL_Custom_Analyze(ObjectDetectionSsdData *data, Analyze
     uint8_t zoneflag[PPL_DNN_OUTPUT_DETECTIONS] = {0};
     float iou[PPL_DNN_OUTPUT_DETECTIONS] = {0};
 
-    PPL_INFO_PRINTF("[SARD][ROI ANALYZE]: PPL_Custom_Analyze");
+    PPL_INFO_PRINTF("[ROI ANALYZE]: PPL_Custom_Analyze");
     if (data == NULL) // sanity check
     {
-        PPL_ERR_PRINTF("[SARD][ROI ANALYZE] Invalid param : data=NULL");
+        PPL_ERR_PRINTF("[ROI ANALYZE] Invalid param : data=NULL");
         return E_PPL_INVALID_PARAM;
     }
 
     num_of_detections = data->numOfDetections;
     /* check param */
     if (num_of_detections > PPL_DNN_OUTPUT_DETECTIONS) {
-        PPL_WARN_PRINTF("[SARD][ROI ANALYZE]: m_maxdetect > PPL_DNN_OUTPUT_DETECTIONS, Set to Max DNN_OUTPUT_DETECTIONS");
+        PPL_WARN_PRINTF("[ROI ANALYZE]: m_maxdetect > PPL_DNN_OUTPUT_DETECTIONS, Set to Max DNN_OUTPUT_DETECTIONS");
         num_of_detections = PPL_DNN_OUTPUT_DETECTIONS;
     }
 
+    MUTEX_LOCK();
     out_box = data->v_bbox;
-    out_classes = data->v_classes;
-    out_scores = data->v_scores;
+    MUTEX_UNLOCK();
 
-    PPL_INFO_PRINTF("[SARD][ROI ANALYZE]: start filter");
+    MUTEX_LOCK();
+    out_classes = data->v_classes;
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
+    out_scores = data->v_scores;
+    MUTEX_UNLOCK();
+
+    PPL_INFO_PRINTF("[ROI ANALYZE]: start filter");
     for (uint32_t i = 0; i < num_of_detections; i++)
     {
         if(p_custom_param->mode == 1)
@@ -590,10 +927,10 @@ static EPPL_RESULT_CODE PPL_Custom_Analyze(ObjectDetectionSsdData *data, Analyze
             else
             {
                 zoneflag[i] = false;
-                iou[i] = 0;                
+                iou[i] = 0;
             }
         }
-        else{ 
+        else{
             ret = object_inside_zone(out_box,i,iou,p_custom_param);
             if(ret == 1)
             {
@@ -609,7 +946,7 @@ static EPPL_RESULT_CODE PPL_Custom_Analyze(ObjectDetectionSsdData *data, Analyze
             else
             {
                 zoneflag[i] = 0;
-                iou[i] = 0;                
+                iou[i] = 0;
             }
         }
     }
@@ -620,12 +957,26 @@ static EPPL_RESULT_CODE PPL_Custom_Analyze(ObjectDetectionSsdData *data, Analyze
         for (uint32_t i = 0; i < num_of_detections; i++)
         {
             if(zoneflag[i])
-            {   
+            {
+                MUTEX_LOCK();
                 output_analyze_data->iou.push_back(iou[i]);
+                MUTEX_UNLOCK();
+
+                MUTEX_LOCK();
                 output_analyze_data->v_bbox.push_back(out_box[i]);
+                MUTEX_UNLOCK();
+
+                MUTEX_LOCK();
                 output_analyze_data->v_classes.push_back(out_classes[i]);
+                MUTEX_UNLOCK();
+
+                MUTEX_LOCK();
                 output_analyze_data->v_scores.push_back(out_scores[i]);
+                MUTEX_UNLOCK();
+
+                MUTEX_LOCK();
                 output_analyze_data->zoneflag.push_back(zoneflag[i]);
+                MUTEX_UNLOCK();
                 counter++;
             }
         }
@@ -635,29 +986,76 @@ static EPPL_RESULT_CODE PPL_Custom_Analyze(ObjectDetectionSsdData *data, Analyze
     {
         for (uint32_t i = 0; i < num_of_detections; i++)
         {
+            MUTEX_LOCK();
             output_analyze_data->iou.push_back(iou[i]);
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             output_analyze_data->v_bbox.push_back(out_box[i]);
+            MUTEX_UNLOCK();
+
+            MUTEX_LOCK();
             output_analyze_data->v_classes.push_back(out_classes[i]);
+            MUTEX_UNLOCK();
+            
+            MUTEX_LOCK();
             output_analyze_data->v_scores.push_back(out_scores[i]);
+            MUTEX_UNLOCK();
+            
+            MUTEX_LOCK();
             output_analyze_data->zoneflag.push_back(zoneflag[i]);
+            MUTEX_UNLOCK();
         }
-        output_analyze_data->numOfDetections = num_of_detections;                
+        output_analyze_data->numOfDetections = num_of_detections;
     }
 
     for(uint32_t i=0; i < output_analyze_data->numOfDetections; i++)
     {
-        PPL_DBG_PRINTF("===========================================");
-        PPL_DBG_PRINTF("[SARD][ROI ANALYZE]: Output Data [%d]: ",i);
-        PPL_DBG_PRINTF("IoU: %f",output_analyze_data->iou[i]);
-        PPL_DBG_PRINTF("Classes: %d",output_analyze_data->v_classes[i]);
-        PPL_DBG_PRINTF("Score: %f",output_analyze_data->v_scores[i]);
-        PPL_DBG_PRINTF("ZoneFlag: %s",output_analyze_data->zoneflag[i]?"Unsafe Zone":"Safe Zone");
+
+        MUTEX_LOCK();
+        float iou = output_analyze_data->iou[i];
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint8_t class_indice = output_analyze_data->v_classes[i];
+        MUTEX_UNLOCK();
+        
+        MUTEX_LOCK();
+        float score = output_analyze_data->v_scores[i];
+        MUTEX_UNLOCK();
+        
+        MUTEX_LOCK();
+        uint8_t flag = output_analyze_data->zoneflag[i];
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint16_t m_xmin = output_analyze_data->v_bbox[i].m_xmin;
+        MUTEX_UNLOCK();
+        
+        MUTEX_LOCK();
+        uint16_t m_ymin = output_analyze_data->v_bbox[i].m_ymin;
+        MUTEX_UNLOCK();
+
+        MUTEX_LOCK();
+        uint16_t m_xmax = output_analyze_data->v_bbox[i].m_xmax;
+        MUTEX_UNLOCK();
+        
+        MUTEX_LOCK();
+        uint16_t m_ymax = output_analyze_data->v_bbox[i].m_ymax;
+        MUTEX_UNLOCK();
+
+        PPL_DBG_PRINTF("===========================================");   
+        PPL_DBG_PRINTF("[ROI ANALYZE]: Output Data [%d]: ",i);
+        PPL_DBG_PRINTF("IoU: %f",iou);
+        PPL_DBG_PRINTF("Classes: %d",class_indice);
+        PPL_DBG_PRINTF("Score: %f",score);
+        PPL_DBG_PRINTF("ZoneFlag: %s",flag?"Unsafe Zone":"Safe Zone");
         PPL_DBG_PRINTF("Bounding Box[%d] :[x_min,y_min,x_max,y_max] = [%d,%d,%d,%d]", 
         i,
-        output_analyze_data->v_bbox[i].m_xmin,
-        output_analyze_data->v_bbox[i].m_ymin,
-        output_analyze_data->v_bbox[i].m_xmax,
-        output_analyze_data->v_bbox[i].m_ymax);
+        m_xmin,
+        m_ymin,
+        m_xmax,
+        m_ymax);
         PPL_DBG_PRINTF("===========================================");
     }
     return E_PPL_OK;
@@ -680,20 +1078,36 @@ static void createCustomOutputFlatbuffer(flatbuffers::FlatBufferBuilder* builder
         ssdData->v_scores[i], 
         ssdData->iou[i], 
         ssdData->zoneflag[i]?"True":"False");
+        MUTEX_LOCK();
         auto bbox_data = SmartCamera::CreateBoundingBox2d(*builder, ssdData->v_bbox[i].m_xmin, \
             ssdData->v_bbox[i].m_ymin, \
             ssdData->v_bbox[i].m_xmax, \
             ssdData->v_bbox[i].m_ymax);
-        PPL_DBG_PRINTF("[SARD][IoU_Analyze] createFlatbuffer : general_data");
+        MUTEX_UNLOCK();
+        PPL_DBG_PRINTF("[IoU_Analyze] createFlatbuffer : general_data");
+        MUTEX_LOCK();
         auto general_data = SmartCamera::CreateGeneralObject(*builder, ssdData->v_classes[i], SmartCamera::BoundingBox_BoundingBox2d, bbox_data.Union(), ssdData->v_scores[i], ssdData->iou[i], ssdData->zoneflag[i]);
+        MUTEX_UNLOCK();
+        
+        MUTEX_LOCK();
         gdata_vector.push_back(general_data);
+        MUTEX_UNLOCK();
     }
-
+    MUTEX_LOCK();
     auto v_bbox = builder->CreateVector(gdata_vector);
-    auto od_data = SmartCamera::CreateObjectDetectionData(*builder, v_bbox);
-    auto out_data = SmartCamera::CreateObjectDetectionTop(*builder, od_data);
+    MUTEX_UNLOCK();
 
+    MUTEX_LOCK();
+    auto od_data = SmartCamera::CreateObjectDetectionData(*builder, v_bbox);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
+    auto out_data = SmartCamera::CreateObjectDetectionTop(*builder, od_data);
+    MUTEX_UNLOCK();
+
+    MUTEX_LOCK();
     builder->Finish(out_data);
+    MUTEX_UNLOCK();
     
     return;
 }

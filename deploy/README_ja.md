@@ -38,13 +38,13 @@
 
 - 「**Console**」へアクセスするための接続情報  
   「**Portal for AITRIOS**」のクライアントアプリ一覧から参照または、必要に応じてサンプルアプリケーション向けのクライアントアプリ登録を行い、下記情報の取得を行ってください。
-  取得方法の詳細は、[Portalユーザーマニュアル](https://developer.aitrios.sony-semicon.com/documents/portal-user-manual) の「SDK用のClient Secretを発行する」をお読みください。
+  取得方法の詳細は、[Portalユーザーマニュアル](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/portal-user-manual/) の「SDK用のClient Secretを発行する」をお読みください。
   - クライアントID
   - シークレット  
 
-  [こちらのドキュメント](https://developer.aitrios.sony-semicon.com/file/download/rest-api-authentication) から下記の必要情報を取得してください。
-  - AITRIOS URL
-  - Token URL 
+  [こちらのドキュメント](https://developer.aitrios.sony-semicon.com/file/download/edge-ai-sensing-portal-console-end-point-info/) から下記の必要情報を取得してください。
+  - Console エンドポイント
+  - Portal エンドポイント
 
 - Gitアカウントの作成および、「SonySemiconductorSolutions」へのアクセス権限
 
@@ -143,8 +143,8 @@ gitコマンドを利用する場合は、下記のコマンドを実行して�
   | [**Blob_storage_name**] | Blob Storageの名前を設定します。 | 任意 |
   | [**Blob_storage_type**] | Blob Storageの種類を設定します。 | Standard_LRS |
   | [**Blob_container_name**] | Blob Containerの名前を設定します。 | 任意 |
-  | [**Aitrios_url**] | 「**Console**」のURLを設定します。 | AITRIOS URL |
-  | [**Token_url**] | 「**Console**」のToken取得のURLを設定します。 | Token URL |
+  | [**Aitrios_url**] | 「**Console**」のURLを設定します。 | Console エンドポイント |
+  | [**Token_url**] | 「**Console**」のToken取得のURLを設定します。 | Portal エンドポイント |
   | [**Aitrios_client_id**] | AITRIOSのクライアントIDを設定します。 | クライアントID |
   | [**Aitrios_client_secret**] | AITRIOSのシークレットを設定します。 | シークレット |
   | [**Aad_tenand_id**] | AAD認証する場合に設定します。 | ディレクトリ (テナント) ID |
@@ -268,7 +268,7 @@ UpdateIRHubConnector APIのパラメータとなるEvent Hubsの情報を取得�
 ### 3. UpdateIRHubConnector APIを実行する
 
 取得したトークン情報と接続文字列を使ってUpdateIRHubConnector APIを実行します。  
-REST APIの詳細については、[デベロッパーエディションREST API](https://developer.aitrios.sony-semicon.com/development-guides/reference/api-references/) を参照してください。  
+REST APIの詳細については、[Console REST API Specification](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/console-rest-api-specification/) を参照してください。  
 下記の手順は、Postmanを利用した実行例です。
 
 - Postmanで新規のPUTリクエストを作成する
@@ -305,7 +305,7 @@ REST APIの詳細については、[デベロッパーエディションREST API
 ### 5. UpdateStorageConnector APIを実行する
 
 取得したトークン情報と接続文字列を使ってUpdateStorageConnector APIを実行します。  
-REST APIの詳細については、[デベロッパーエディションREST API](https://developer.aitrios.sony-semicon.com/development-guides/reference/api-references/) を参照してください。  
+REST APIの詳細については、[Console REST API Specification](https://developer.aitrios.sony-semicon.com/edge-ai-sensing/documents/console-rest-api-specification/) を参照してください。  
 下記の手順は、Postmanを利用した実行例です。
 
 - Postmanで新規のPUTリクエストを作成する

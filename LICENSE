@@ -8,7 +8,7 @@ ZoneDetection
 
 MIT License
 
-Copyright (c) 2023 Sony Semiconductor Solutions Corporation
+Copyright (c) 2023, 2024 Sony Semiconductor Solutions Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ SOFTWARE.
 ========================================================================
 
 
-2. License of Vision and Sensing Application SDK for AITRIOS
+2. License of Edge Application SDK for AITRIOS
 
    AITRIOS and AITRIOS logos are the registered trademarks or trademarks of Sony Group Corporation or its affiliated companies.
 ========================================================================

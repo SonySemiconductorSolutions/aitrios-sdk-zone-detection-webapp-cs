@@ -57,7 +57,7 @@ struct senscord_raw_data_t {
   void* address;       /**< virtual address */
   size_t size;         /**< data size */
   char* type;    /**< data type*/
-  uint64_t timestamp;  /**< nanoseconds timestamp captured by the device */
+  uint64_t timestamp;  /**< nanoseconds timestamp captured by the Edge Device */
 };
 
 /* enum */
