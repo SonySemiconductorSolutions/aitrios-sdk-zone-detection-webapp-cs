@@ -127,7 +127,6 @@ async function GetDevices (listElementId, silent, isOption, placeHolderText, pla
 
       if (listElementId) {
         const json = JSON.parse(response.value)
-
         const list = document.getElementById(listElementId)
 
         list.innerText = null
@@ -141,8 +140,7 @@ async function GetDevices (listElementId, silent, isOption, placeHolderText, pla
         list.append(option)
         for (const device in json.devices) {
           // list.append(new Option(json.devices[device].device_id, json.devices[device].device_id))
-          const localOption = new Option(`${json.devices[device].device_id} (${json.devices[device].connectionState})`, json.devices[device].device_id)
-
+          const localOption = new Option(`${json.devices[device].property.device_name} (${json.devices[device].connectionState})`, json.devices[device].device_id)
           if (json.devices[device].connectionState === 'Connected') {
             localOption.classList.add('connectedDevice')
           } else {

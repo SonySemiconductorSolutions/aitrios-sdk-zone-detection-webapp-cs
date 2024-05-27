@@ -67,16 +67,16 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
 ### 2. 撮影エリアを取得する
 
 - 折りたたみセクションの[**Step 1 : Capture Image**]を選択する
-- [**Device ID**]のプルダウンから、利用するエッジデバイスのDevice IDを選択する
+- [**Device Name**]のプルダウンから、利用するエッジデバイスのDevice Nameを選択する
 - [**Model ID**]のプルダウンから、エッジデバイスにデプロイしたModel IDを選択する
 - [**Capture**]ボタンを押下して画像情報を取得する
 
   各表示パーツの機能は下記のとおりです。
   | 表示パーツ | 機能説明 |
   | ---- | ---- |
-  | [**Device ID**] | 「**Console**」に登録されているデバイスのDevice IDを選択できます。 |
-  | [**Model ID**] | 「**Console**」に登録されているDevice IDのModel IDを選択できます。 |
-  | [**Capture**]ボタン | 選択されたDevice ID・Model IDに紐づく画像情報を取得します。 |
+  | [**Device Name**] | 「**Console**」に登録されているデバイスのDevice Nameを選択できます。 |
+  | [**Model ID**] | 「**Console**」に登録されているDevice NameのModel IDを選択できます。 |
+  | [**Capture**]ボタン | 選択されたDevice Name・Model IDに紐づく画像情報を取得します。 |
 
 ### 3. 侵入検知を行うエリアを設定する
 
@@ -138,7 +138,7 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
   この画面上でも変更することが可能です。
 
 - [**Notification Period**]に通知を発行する際の検出対象の滞在時間の閾値を設定する
-- [**Display Result**]に検知結果の表示方法を設定する
+- [**Edge Filter**]に検知結果の表示方法を設定する
 - [**Start Inference**]ボタンまたは、[**Start Inference (No Image)**]ボタンを押下して侵入検知を開始する
 
   > **Note**  
@@ -149,13 +149,13 @@ Azureにデプロイされた「**ZoneDetection**」は、「**Console for AITRI
   各表示パーツの機能は下記のとおりです。
   | 表示パーツ  | 機能説明  |
   | ---- | ---- |
-  | [**Device ID**] | 「**Console**」に登録されているデバイスのDevice IDを選択できます。 |
+  | [**Device Name**] | 「**Console**」に登録されているデバイスのDevice Nameを選択できます。 |
   | [**Model ID**] | 「**Console**」に登録されているデバイスのModel IDを選択できます。 |
   | [**Detection Threshold**] | 物体検出確度の閾値を設定できます。</br>ex.) 検出確度を80％に設定した場合、検出確度が80%以上のものを物体として検出します。 |
   | [**IoU Threshold**] | 侵入検知を判断する際の重複率(IoU)を設定できます。</br>ex.) 重複率(IoU)を20％に設定した場合、検出された物体と侵入検知を行うエリアの重複率が20％以上の場合に侵入と判断します。 |
   | [**Frequency (seconds)**] | 検出結果の更新間隔を設定できます。 |
   | [**Notification Period**] | 通知を発行する際の検出対象の滞在時間の閾値を設定できます。</br>ex.) 滞在時間の閾値を30secに設定した場合、侵入検知を行うエリア内で、30秒以上継続して物体が検知された場合にグラフが赤くなります。|
-  | [**Display Result**] | 抽出対象の範囲を下記から選択できます。</br>**`All`** : 検出した物体を全て描画する。</br>**`In Zone`** : 侵入検知した物体のみ描画する。 |
+  | [**Edge Filter**] | 抽出対象の範囲を下記から選択できます。</br>**`OFF`** : 検出した物体を全て描画する。</br>**`ON`** : 侵入検知した物体のみ描画する。 |
   | [**Start Inference**]ボタン | 推論結果(画像あり)を取得し可視化を開始できます。 |
   | [**Start Inference (No Image)**]ボタン | 推論結果(画像なし)を取得し可視化を開始できます。 |
   | [**Stop Inference**]ボタン | 推論結果の可視化を停止できます。 |

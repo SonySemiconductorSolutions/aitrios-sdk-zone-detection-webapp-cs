@@ -490,10 +490,12 @@ async function SetFromCommandParameterToDOM () {
       }
     }
     if (param.UploadInterval !== undefined && param.UploadInterval !== 1) {
-      captureFrequencySlider.value = Math.round((param.UploadInterval / 1000) * 33.3)
-      captureFrequencySliderLabel.innerHTML = Math.round((param.UploadInterval / 1000) * 33.3)
-      zoneDetectionFrequencySlider.value = Math.round((param.UploadInterval / 1000) * 33.3)
-      zoneDetectionFrequencyLabel.innerHTML = Math.round((param.UploadInterval / 1000) * 33.3)
+      const freq = (param.UploadInterval / 1000) * 33.3
+      const convertedFreq = Math.round(freq * 10) / 10
+      captureFrequencySlider.value = convertedFreq
+      captureFrequencySliderLabel.innerHTML = convertedFreq
+      zoneDetectionFrequencySlider.value = convertedFreq
+      zoneDetectionFrequencyLabel.innerHTML = convertedFreq
     } else if (param.UploadInterval !== undefined && param.UploadInterval === 1) {
       captureFrequencySlider.value = 0
       captureFrequencySliderLabel.innerHTML = 0
@@ -604,6 +606,33 @@ async function ApplyCommandParameterFileToDevice (deviceId, fileName) {
   return result
 }
 
+async function UnBindCommandParameterFileToDevice (deviceId, fileName) {
+  let result
+  const funcName = `${arguments.callee.name}()`
+  try {
+    if (checkTokenExp(token)) await getToken()
+    await $.ajax({
+      async: true,
+      type: 'DELETE',
+      url: window.location.origin + '/' + 'sony/UnBindCommandParameterFileToDevice',
+      data: {
+        token,
+        deviceId,
+        fileName
+      }
+    }).done(function (response) {
+      console.debug(response.value)
+      result = JSON.parse(response.value)
+    }).fail(function (response, status, err) {
+      console.error(`sony/UnBindCommandParameterFileToDevice : error : ${err}`)
+    })
+  } catch (err) {
+    console.error(`${funcName}: ${err.statusText}`)
+    throw err
+  }
+  return result
+}
+
 async function UpdateCommandParameterFile (fileName, comment, commandName, mode, uploadMethod,
   fileFormat, uploadMethodIR, cropHOffset, cropVOffset, cropHSize,
   cropVSize, numberOfImages, uploadInterval, numberOfInferencesPerMessage,
@@ -658,17 +687,31 @@ async function ManagementCommandParameter (deviceId, fileName, comment, commandN
   maxDetectionsPerFrame, storageSubDirectoryPath, storageSubDirectoryPathIR,
   pplParameter, modelId) {
   try {
+    const commandParamName = `${fileName}_${deviceId}.json`
     const resultCommandParam = await GetCommandParameterFile()
+    const parameterInfo = resultCommandParam.parameter_list.filter(elm => elm.file_name === commandParamName)
     const applyCheckDeviceId = resultCommandParam.parameter_list.filter(elm => elm.device_ids.indexOf(currentDeviceId) !== -1)
-    if (applyCheckDeviceId.length === 0) {
-      await RegistCommandParameterFile(fileName, comment, commandName, mode, uploadMethod,
+    if (applyCheckDeviceId.length !== 0 && applyCheckDeviceId[0].file_name !== commandParamName) {
+      await UnBindCommandParameterFileToDevice(deviceId, applyCheckDeviceId[0].file_name)
+    }
+
+    if (parameterInfo.length === 0) {
+      await RegistCommandParameterFile(commandParamName, comment, commandName, mode, uploadMethod,
         fileFormat, uploadMethodIR, cropHOffset, cropVOffset, cropHSize,
         cropVSize, numberOfImages, uploadInterval, numberOfInferencePerMessage,
         maxDetectionsPerFrame, storageSubDirectoryPath, storageSubDirectoryPathIR,
         pplParameter, modelId)
-      await ApplyCommandParameterFileToDevice(deviceId, fileName)
-    } else {
-      await UpdateCommandParameterFile(applyCheckDeviceId[0].file_name, comment, commandName, mode, uploadMethod,
+      await ApplyCommandParameterFileToDevice(deviceId, commandParamName)
+    } else if (applyCheckDeviceId.length === 0 || (applyCheckDeviceId.length !== 0 && applyCheckDeviceId[0].file_name !== commandParamName)) {
+      await ApplyCommandParameterFileToDevice(deviceId, commandParamName)
+      await UpdateCommandParameterFile(commandParamName, comment, commandName, mode, uploadMethod,
+        fileFormat, uploadMethodIR, cropHOffset, cropVOffset,
+        cropHSize, cropVSize, numberOfImages, uploadInterval,
+        numberOfInferencePerMessage, maxDetectionsPerFrame,
+        storageSubDirectoryPath, storageSubDirectoryPathIR,
+        pplParameter, modelId)
+    } else if (applyCheckDeviceId[0].file_name === commandParamName) {
+      await UpdateCommandParameterFile(commandParamName, comment, commandName, mode, uploadMethod,
         fileFormat, uploadMethodIR, cropHOffset, cropVOffset,
         cropHSize, cropVSize, numberOfImages, uploadInterval,
         numberOfInferencePerMessage, maxDetectionsPerFrame,
@@ -1127,7 +1170,7 @@ async function StartInference (resultElementId) {
   try {
     if (checkTokenExp(token)) await getToken()
     setResultElement(resultElement, 'Starting Inference')
-    let frequency = parseInt(document.getElementById('zoneDetectionFrequencySlider').value)
+    let frequency = parseFloat(document.getElementById('zoneDetectionFrequencySlider').value)
     frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
     const PPLParameter = {
       header: {
@@ -1212,7 +1255,7 @@ async function StartZoneDetection (resultElementId) {
   try {
     if (checkTokenExp(token)) await getToken()
     setResultElement(resultElement, 'Starting Zone Detection Inference')
-    let frequency = parseInt(document.getElementById('zoneDetectionFrequencySlider').value)
+    let frequency = parseFloat(document.getElementById('zoneDetectionFrequencySlider').value)
     frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
     const modelId = currentModelId
     const NumberOfInferencesPerMessage = null
@@ -1410,7 +1453,7 @@ async function SaveParameter () {
   }).done(function (response) {
     // var result = JSON.parse(response.value)
   })
-  let frequency = parseInt(captureFrequencySliderLabel.innerHTML)
+  let frequency = parseFloat(captureFrequencySliderLabel.innerHTML)
   frequency = frequency === 0 ? 1 : Math.round((frequency * 1000) / 33.3)
   const FrequencyOfImages = frequency.toString()
   const modelId = currentModelId
@@ -1460,7 +1503,7 @@ async function SetDeviceLists (deviceId) {
   console.debug(`=> ${funcName}`)
 
   try {
-    let deviceListId = 'captureDeviceIdList'
+    let deviceListId = 'captureDeviceNameList'
     let resultElementId = 'captureImageBtnResult'
     await GetDevices(deviceListId, true, false, 'Select Device', '0', resultElementId)
       .then(async function (response) {
@@ -1493,7 +1536,7 @@ async function SetDeviceLists (deviceId) {
         console.error(`${funcName}: ${err.statusText}`)
       })
 
-    deviceListId = 'zoneDetectionDeviceIdList'
+    deviceListId = 'zoneDetectionDeviceNameList'
     resultElementId = 'startZoneDetectionBtnResult'
     await GetDevices(deviceListId, true, false, 'Select Device', '0', resultElementId)
       .then(async function (response) {
