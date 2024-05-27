@@ -59,7 +59,7 @@ let capturePhotoUrl
 let token
 let pplMode = 0
 let withImage = false
-const COMMAND_PARAM_FILE_NAME = 'ST_COMMAND_PARAM.json'
+const COMMAND_PARAM_FILE_NAME = 'ST_COMMAND_PARAM'
 let testDetectionFlg = false
 let elapsedTimer
 let nowTime
@@ -102,6 +102,7 @@ const chartOptions = {
     legend: false
   }
 }
+let deviceInfo
 
 const chartData = {
   labels: [],
@@ -243,7 +244,7 @@ $('#taToken').on('change', function (evt) {
 $('#accordionCaptureImage').on('show.bs.collapse', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'captureImageBtnResult'
-  const deviceListId = 'captureDeviceIdList'
+  const deviceListId = 'captureDeviceNameList'
 
   if (document.getElementById(deviceListId).length === 0) {
     // List empty.  Gather Edge Device list.
@@ -345,7 +346,7 @@ $('#accordionSaveParameter').on('show.bs.collapse', function (evt) {
 $('#tab-telemetry-label').on('show.bs.tab', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'startZoneDetectionBtnResult'
-  const deviceListId = 'zoneDetectionDeviceIdList'
+  const deviceListId = 'zoneDetectionDeviceNameList'
 
   // only the first time
   if (document.getElementById(deviceListId).length === 0) {
@@ -366,7 +367,7 @@ $('#tab-telemetry-label').on('show.bs.tab', async function (evt) {
 
   // Set selected Edge Device
   if (currentDeviceId !== undefined) {
-    setSelectOption('zoneDetectionDeviceIdList', currentDeviceId)
+    setSelectOption('zoneDetectionDeviceNameList', currentDeviceId)
   }
 
   // Add event listeners for sliders if not set.  Otherwise, just enable sliders.
@@ -454,7 +455,7 @@ $('#tab-telemetry-label').on('hide.bs.tab', async function (evt) {
 // //////////////////////////////////////////////////////////////
 // List Change events
 // //////////////////////////////////////////////////////////////
-$('#captureDeviceIdList').on('change', async function (evt) {
+$('#captureDeviceNameList').on('change', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const targetListId = evt.target.id
   const modelListId = 'captureModelIdList'
@@ -501,13 +502,14 @@ $('#captureDeviceIdList').on('change', async function (evt) {
 $('#captureModelIdList').on('change', function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const targetListId = evt.target.id
-  const deviceListId = 'captureDeviceIdList'
+  const deviceListId = 'captureDeviceNameList'
   const modelList = document.getElementById(targetListId)
   const deviceList = document.getElementById(deviceListId)
   if (modelList.selectedIndex > 0) {
     // a model is selected
     currentModelId = modelList[modelList.selectedIndex].value
     disableUiElements(false)
+    $('#stopZoneDetectionBtn').prop('disabled', true)
   } else {
     disableUiElements(true)
   }
@@ -520,7 +522,7 @@ $('#captureModelIdList').on('change', function (evt) {
   }
 })
 
-$('#zoneDetectionDeviceIdList').on('change', async function (evt) {
+$('#zoneDetectionDeviceNameList').on('change', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const targetListId = evt.target.id
   const modelListId = 'zoneDetectionModelIdList'
@@ -568,7 +570,7 @@ $('#zoneDetectionDeviceIdList').on('change', async function (evt) {
 
 $('#zoneDetectionModelIdList').on('change', async function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
-  const deviceListId = 'zoneDetectionDeviceIdList'
+  const deviceListId = 'zoneDetectionDeviceNameList'
   const modelListId = evt.target.id
   const deviceList = document.getElementById(deviceListId)
   const modelList = document.getElementById(modelListId)
@@ -583,23 +585,23 @@ $('#zoneDetectionModelIdList').on('change', async function (evt) {
 })
 
 $('#pplModeSelector').on('change', async function (evt) {
-  pplMode = parseInt(evt.target.value)
+  pplMode = evt.target.checked ? 1 : 0
 })
 
 // //////////////////////////////////////////////////////////////
 // Button Clicks
 // //////////////////////////////////////////////////////////////
 
-// Refresh Edge Device List for Setup 1 -> Step 1 : Capture Image
-$('#captureDeviceIdListRefreshBtn').click(function (evt) {
+// Refresh Device List for Setup 1 -> Step 1 : Capture Image
+$('#captureDeviceNameListRefreshBtn').click(function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'captureImageBtnResult'
 
   toggleLoader(false)
   // remember current selection
-  const selectedVal = $('#captureDeviceIdList option:selected').val()
+  const selectedVal = $('#captureDeviceNameList option:selected').val()
 
-  GetDevices('captureDeviceIdList', true, false, 'Select Device', '0', resultElementId)
+  GetDevices('captureDeviceNameList', true, false, 'Select Device', '0', resultElementId)
     .then(() => {
     })
     .catch(() => {
@@ -607,7 +609,7 @@ $('#captureDeviceIdListRefreshBtn').click(function (evt) {
     .finally(() => {
       if (selectedVal != null && selectedVal.length > 0) {
         console.debug(selectedVal)
-        $('select[name="captureDeviceIdList"]').val(selectedVal)
+        $('select[name="captureDeviceNameList"]').val(selectedVal)
       }
       toggleLoader(true)
     })
@@ -673,15 +675,15 @@ $('#captureSaveParameterBtn').click(function (evt) {
     })
 })
 
-// Refresh Edge Device list in Zone Detection Tab
-$('#zoneDetectionDeviceIdListRefreshBtn').click(function (evt) {
+// Refresh device list in Zone Detection Tab
+$('#zoneDetectionDeviceNameListRefreshBtn').click(function (evt) {
   // console.debug(evt.target.id + '() ' + evt.type)
   const resultElementId = 'startZoneDetectionBtnResult'
 
   toggleLoader(false)
-  const selectedVal = $('#captureDeviceIdList option:selected').val()
+  const selectedVal = $('#captureDeviceNameList option:selected').val()
 
-  GetDevices('zoneDetectionDeviceIdList', true, false, 'Select Device', '0', resultElementId)
+  GetDevices('zoneDetectionDeviceNameList', true, false, 'Select Device', '0', resultElementId)
     .then(() => {
     })
     .catch(() => {
@@ -689,7 +691,7 @@ $('#zoneDetectionDeviceIdListRefreshBtn').click(function (evt) {
     .finally(() => {
       if (selectedVal != null && selectedVal.length > 0) {
         console.debug(selectedVal)
-        $('select[name="captureDeviceIdList"]').val(selectedVal)
+        $('select[name="captureDeviceNameList"]').val(selectedVal)
       }
       toggleLoader(true)
     })

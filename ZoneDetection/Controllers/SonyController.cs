@@ -127,6 +127,27 @@ namespace ZoneDetection.Controllers
             return await _client.PatchAsync(requestUri.AbsoluteUri, content);
         }
 
+        public async Task<HttpResponseMessage> SendDeleteRaw(string requestSegment, string token, HttpContent content)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException(@"{'status':'Need Token'}");
+            }
+
+            Uri baseUri = new Uri(_appSettings.SonyApi.BaseUrl);
+            Uri requestUri = new Uri($"{baseUri.AbsoluteUri}/{requestSegment}");
+            AddRequestHeader(token);
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = requestUri
+            };
+            request.Content = content;
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return await _client.SendAsync(request);
+            
+        }        
+
         #region SONYAPIGET
         [HttpGet]
         public async Task<ActionResult> GetSCSToken()
@@ -416,6 +437,42 @@ namespace ZoneDetection.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpDelete]
+        public async Task<ActionResult> UnBindCommandParameterFileToDevice(string token,
+                                                                         string deviceId,
+                                                                         string fileName)
+        {
+            try
+            {
+                string urlSegment = $"devices/configuration/command_parameter_files/{fileName}";
+                var httpContent = new Dictionary<string, string>();
+
+                if (!string.IsNullOrEmpty(deviceId)) httpContent.Add("device_ids", deviceId);
+                var contentJson = JsonConvert.SerializeObject(httpContent);
+                var encodeContent = new StringContent(contentJson, Encoding.UTF8, "application/json");
+                var response = await SendDeleteRaw(urlSegment, token, encodeContent);
+                var jsonString = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok(Json(jsonString));
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, Json(jsonString));
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, Json(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Excetion in {System.Reflection.MethodBase.GetCurrentMethod().Name}() {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
+        
         [HttpPatch]
         public async Task<ActionResult> UpdateCommandParameterFile(string token,
                                                                    string fileName,

@@ -89,14 +89,14 @@
                                                             <div class="info-box-content">
                                                                 <div class="callout callout-info">
                                                                     <h5>Capture one image from camera</h5>
-                                                                    <p>Select Device ID and Model ID to use to capture image</p>
+                                                                    <p>Select Device Name and Model ID to use to capture image</p>
                                                                 </div>
-                                                                <label for="captureDeviceIdList">Device ID</label>
+                                                                <label for="captureDeviceNameList">Device Name</label>
                                                                 <div class="form-group">
                                                                     <div class="input-group">
-                                                                        <select name="captureDeviceIdList" id="captureDeviceIdList" class="form-control custom-select"></select>
+                                                                        <select name="captureDeviceNameList" id="captureDeviceNameList" class="form-control custom-select"></select>
                                                                         <div class="input-group-append">
-                                                                            <button type="button" class="btn btn-success" style="min-width:1em" id="captureDeviceIdListRefreshBtn">
+                                                                            <button type="button" class="btn btn-success" style="min-width:1em" id="captureDeviceNameListRefreshBtn">
                                                                                 <i class="fas fa-sync btn-fa" style="margin:0"></i>
                                                                             </button>
                                                                         </div>
@@ -191,7 +191,7 @@
                                                                 <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
                                                                     <label for="captureFrequencySlider" style="margin-right:0.5em; width:15em">Frequency (seconds) : </label>
                                                                     <div class="slider-blue" style="margin:0 1em 0 1em;width:50%; min-width:20%">
-                                                                        <input type="range" class="slider" min="0" max="60" value="10" step="1" id="captureFrequencySlider" style="width:100%">
+                                                                        <input type="range" class="slider" min="0" max="60" value="10" step="0.1" id="captureFrequencySlider" style="width:100%">
                                                                     </div>
                                                                     <span id="captureFrequencySliderLabel"></span><span>&nbsp;sec</span>
                                                                 </div>
@@ -243,11 +243,11 @@
                                     <div class="info-box-content">
                                         <div class="form-group">
                                             <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
-                                                <label for="zoneDetectionDeviceIdList" style="margin-right:0.5em; width:11em;justify-content:right">Device ID : </label>
+                                                <label for="zoneDetectionDeviceNameList" style="margin-right:0.5em; width:11em;justify-content:right">Device Name : </label>
                                                 <div class="input-group" style="min-width:15em; width:30%">
-                                                    <select name="zoneDetectionDeviceIdList" id="zoneDetectionDeviceIdList" class="form-control custom-select"></select>
+                                                    <select name="zoneDetectionDeviceNameList" id="zoneDetectionDeviceNameList" class="form-control custom-select"></select>
                                                     <div class="input-group-append">
-                                                        <button type="button" class="btn btn-success" style="min-width:1em" id="zoneDetectionDeviceIdListRefreshBtn">
+                                                        <button type="button" class="btn btn-success" style="min-width:1em" id="zoneDetectionDeviceNameListRefreshBtn">
                                                             <i class="fas fa-sync btn-fa" style="margin:0"></i>
                                                         </button>
                                                     </div>
@@ -283,7 +283,7 @@
                                                 <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
                                                     <label for="zoneDetectionFrequencySlider" style="margin-right:0.5em; width:11em;justify-content:right">Frequency (seconds) : </label>
                                                     <div class="slider-blue" style="margin:0 1em 0 0;width:50%; min-width:20%">
-                                                        <input type="range" class="slider" min="0" max="60" value="10" step="1" id="zoneDetectionFrequencySlider" style="width:100%">
+                                                        <input type="range" class="slider" min="0" max="60" value="10" step="0.1" id="zoneDetectionFrequencySlider" style="width:100%">
                                                     </div>
                                                     <span id="zoneDetectionFrequencySliderLabel"></span><span>&nbsp;sec</span>
                                                 </div>
@@ -298,11 +298,10 @@
                                         </div>
                                         <div class="form-group">
                                             <div class="row div-Horizontal-Input" style="justify-content:left;width:100%">
-                                                <label for="pplModeSelector" style="margin-right:0.5em; width:11em;justify-content:right">Display Result : </label>
-                                                <select name="pplModeSelector" id="pplModeSelector" class="form-control custom-select" style="width:10em">
-                                                    <option value="0" selected>All</option>
-                                                    <option value="1">In Zone</option>
-                                                </select>
+                                                <div name="pplModeSelectorArea" id="pplModeSelectorArea">
+                                                    <input type="checkbox" name="pplModeSelector" id="pplModeSelector" style="vertical-align:middle;margin-left:4rem;transform:scale(1.5);" />
+                                                </div>
+                                                <label for="pplModeSelector" style="margin-left:10px">Edge Filter(In Zone)</label>
                                             </div>
                                         </div>
                                         <div class="btnStatusDiv">

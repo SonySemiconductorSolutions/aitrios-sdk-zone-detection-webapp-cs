@@ -67,16 +67,16 @@ You can switch between screens by selecting the tabs at the top left of the scre
 ### 2. Get imaging area
 
 - Select the [**Step 1 : Capture Image**] in the folding section 
-- Select the Device ID of the Edge Device you want to use from the [**Device ID**] drop-down list
+- Select the Device Name of the Edge Device you want to use from the [**Device Name**] drop-down list
 - Select the Model ID you deployed to your Edge Device from the [**Model ID**] drop-down list 
 - Press the [**Capture**] button to capture image information
 
   The function of each display part is as follows:
   | Display part | Function |
   | ---- | ---- |
-  | [**Device ID**] | Selects a Device ID of the Edge Device enrolled in the "**Console**". |
-  | [**Model ID**] | Selects a Model ID of the Device ID registered in the "**Console**". |
-  | [**Capture**] button | Gets image information associated with the selected Device ID/Model ID. |
+  | [**Device Name**] | Selects a Device Name of the Edge Device enrolled in the "**Console**". |
+  | [**Model ID**] | Selects a Model ID of the Device Name registered in the "**Console**". |
+  | [**Capture**] button | Gets image information associated with the selected Device Name/Model ID. |
 
 ### 3. Set area for zone detection
 
@@ -138,7 +138,7 @@ You can switch between screens by selecting the tabs at the top left of the scre
   but they can also be changed on this screen.
 
 - Set a detection stay threshold that issues a notification to the [**Notification Period**]
-- Set how detection results are displayed to the [**Display Result**]
+- Set how detection results are displayed to the [**Edge Filter**]
 - Press the [**Start Inference**] button or [**Start Inference (No Image)**] button to start zone detection
 
   > **Note**  
@@ -149,13 +149,13 @@ You can switch between screens by selecting the tabs at the top left of the scre
   The function of each display part is as follows:
   | Display part  | Function  |
   | ---- | ---- |
-  | [**Device ID**] | Selects a Device ID of the Edge Device enrolled in the "**Console**". |
-  | [**Model ID**] | Selects a Model ID of the Device ID registered in the "**Console**". |
+  | [**Device Name**] | Selects a Device Name of the Edge Device enrolled in the "**Console**". |
+  | [**Model ID**] | Selects a Model ID of the Device Name registered in the "**Console**". |
   | [**Detection Threshold**] | Sets a threshold for object detection accuracy. </br>ex.) If the detection accuracy is set to 80%, anything with a detection accuracy of 80% or higher will be detected as an object. | 
   | [**IoU Threshold**] | Sets the overlap rate (IoU) for determining zone detection. </br>ex.) If the overlap rate (IoU) is set to 20%, an zone detection is determined if the overlap rate between the detected object and the area for zone detection is 20% or more. | 
   | [**Frequency**] | Sets a refresh interval for detection results. |
   | [**Notification Period**] | Sets a detection stay threshold that issues a notification.</br>ex.) If the detection stay threshold is set to 30 sec, the graph will turn red if an object is detected for more than 30 seconds continuously in the zone detection area.|
-  | [**Display Result**] | Selects what to display in the following.</br>**`All`** : Display all detected objects. </br>**`In Zone`** : Display only zone-detected objects |
+  | [**Edge Filter**] | Selects what to display in the following.</br>**`OFF`** : Display all detected objects. </br>**`ON`** : Display only zone-detected objects |
   | [**Start Inference**] button | Starts getting inference results (with images) and visualization. |
   | [**Start Inference (No Image)**] button | Starts getting inference results (no image) and visualization. |
   | [**Stop Inference**] button | Stops visualizing inference results. |
